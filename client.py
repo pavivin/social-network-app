@@ -13,8 +13,6 @@ def my_message(data):
     print("message received with ", data)
 
 
-
-
 @sio.event
 def disconnect():
     print("disconnected from server")

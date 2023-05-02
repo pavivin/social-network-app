@@ -1,5 +1,5 @@
-from aiohttp import web
 import socketio
+from aiohttp import web
 
 sio = socketio.AsyncServer(cors_allowed_origins="*")
 app = web.Application()
@@ -36,4 +36,4 @@ def disconnect(sid):
 
 app.router.add_get("/", index)
 if __name__ == "__main__":
-    web.run_app(app, port=8000)
+    web.run_app(app, host="0.0.0.0", port=8000)
