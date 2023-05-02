@@ -30,6 +30,7 @@ factory-boy = "^3.2.1"
 async-factory-boy = "^1.0.0"
 psycopg2-binary = "^2.9.6"
 python-socketio = "^5.8.0"
+aiohttp = "^3.8.4"
 
 
 [build-system]

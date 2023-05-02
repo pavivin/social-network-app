@@ -22,21 +22,32 @@ app.use_cors(
     max_age=300,
 )
 
-sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
+sio = socketio.AsyncServer(cors_allowed_origins="*")
 # wrap with ASGI application
 socket_app = socketio.ASGIApp(sio)
-app.mount("/api/chat", socket_app)
-
-
-# @sio.event()
-# def my_custom_event(sid, data):
-#     sio.emit("my event", {"data": "foobar"})
+app.mount("/test", socket_app)
 
 
 @sio.on("connect")
 async def connect(sid, env):
-    sio.emit("my event", {"data": "foobar"})
-    print("New Client Connected to This id :" + " " + str(sid))
+    print("on connect")
+
+
+@sio.on("direct")
+async def direct(sid, msg):
+    print(f"direct {msg}")
+    await sio.emit("event_name", msg, room=sid)  # we can send message to specific sid
+
+
+@sio.on("broadcast")
+async def broadcast(sid, msg):
+    print(f"broadcast {msg}")
+    await sio.emit("event_name", msg)  # or send to everyone
+
+
+@sio.on("disconnect")
+async def disconnect(sid):
+    print("on disconnect")
 
 
 @app.exception_handler(Exception)

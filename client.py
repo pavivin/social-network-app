@@ -1,6 +1,6 @@
 import socketio
 
-sio = socketio.Client(logger=True, engineio_logger=True)
+sio = socketio.Client()
 
 
 @sio.event
@@ -9,9 +9,10 @@ def connect():
 
 
 @sio.event
-def message(data):
+def my_message(data):
     print("message received with ", data)
-    sio.emit("my response", {"response": "my response"})
+
+
 
 
 @sio.event
@@ -19,5 +20,5 @@ def disconnect():
     print("disconnected from server")
 
 
-sio.connect("http://localhost:5000/api/chat", namespaces=["/chat"])
+sio.connect("http://localhost:8000/")
 sio.wait()
