@@ -32,8 +32,6 @@ RUN set -ex \
 
 COPY . .
 
-EXPOSE 5000
-
 CMD ["python", "main.py"]
 
 USER appuser

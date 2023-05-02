@@ -4,6 +4,8 @@ services:
     image: postgres
     ports:
       - 6432:6432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
     networks:
@@ -19,5 +21,10 @@ services:
       - db
     networks:
       - voices
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
 networks:
   voices:
