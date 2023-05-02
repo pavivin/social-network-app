@@ -7,6 +7,8 @@ from vizme.app.healthcheck.controllers import CatsController
 from vizme.logger import logger
 from vizme.protocol import Response
 
+import socketio
+
 app = Application()
 
 app.register_controllers([CatsController])
@@ -20,6 +22,22 @@ app.use_cors(
     allow_headers="* Authorization",
     max_age=300,
 )
+
+sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
+# wrap with ASGI application
+socket_app = socketio.ASGIApp(sio)
+app.mount("/api/chat", socket_app)
+
+
+# @sio.event()
+# def my_custom_event(sid, data):
+#     sio.emit("my event", {"data": "foobar"})
+
+
+@sio.on("connect")
+async def connect(sid, env):
+    sio.emit("my event", {"data": "foobar"})
+    print("New Client Connected to This id :" + " " + str(sid))
 
 
 @app.exception_handler(Exception)

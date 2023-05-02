@@ -1,9 +1,6 @@
-from pathlib import Path
 from typing import Any, Mapping, Optional
 
 from pydantic import BaseSettings, PostgresDsn, validator
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -16,8 +13,7 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DATABASE: str
     POSTGRES_TEST_DATABASE: str = ""
-    TEST_DATA_DIR: Path = BASE_DIR / "data" / "tests"
-    DATABASE_URL: PostgresDsn
+    DATABASE_URL: PostgresDsn = ""
     TEST_DATABASE_URL: PostgresDsn = ""
     ALEMBIC_DATABASE_URL: PostgresDsn = ""
 
