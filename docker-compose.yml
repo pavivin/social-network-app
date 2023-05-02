@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+  db:
+    image: postgres
+    build: .
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    networks:
+      - study_bot
+  web:
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - study_bot
+networks:
+  study_bot:
