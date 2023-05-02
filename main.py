@@ -1,3 +1,4 @@
+import socketio
 from blacksheep import Application, Request, json
 from blacksheep.server.openapi.v3 import OpenAPIHandler
 from openapidocs.v3 import Info
@@ -6,8 +7,6 @@ from vizme import exceptions
 from vizme.app.healthcheck.controllers import CatsController
 from vizme.logger import logger
 from vizme.protocol import Response
-
-import socketio
 
 app = Application()
 
