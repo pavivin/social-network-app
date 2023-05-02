@@ -9,6 +9,7 @@ sio.attach(app)
 async def index(request):
     """Serve the client-side application."""
     print("penis")
+    return web.Response(text="<h1>Hello!</h1>", content_type="text/html")
 
 
 @sio.on("connect")
