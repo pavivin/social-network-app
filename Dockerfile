@@ -5,7 +5,7 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 
-WORKDIR /vizme
+WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 RUN pip install poetry \
@@ -14,9 +14,9 @@ RUN pip install poetry \
 
 FROM python:3.11-slim as final
 
-WORKDIR /vizme
+WORKDIR /app
 
-COPY --from=build /vizme/requirements.txt .
+COPY --from=build /app/requirements.txt .
 
 RUN pip install -r requirements.txt
 
@@ -30,7 +30,7 @@ RUN set -ex \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./vizme vizme
+COPY . .
 
 EXPOSE 5000
 

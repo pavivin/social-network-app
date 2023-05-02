@@ -3,11 +3,11 @@ services:
   db:
     image: postgres
     ports:
-      - 5432:5432
+      - 6432:6432
     env_file:
       - .env
     networks:
-      - study_bot
+      - voices
   web:
     build: .
     ports:
@@ -18,6 +18,6 @@ services:
     depends_on:
       - db
     networks:
-      - study_bot
+      - voices
 networks:
-  study_bot:
+  voices:
