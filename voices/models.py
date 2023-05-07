@@ -1,4 +1,8 @@
-from sqlalchemy import Column, DateTime, Integer, func
+import uuid
+
+from sqlalchemy import Column, DateTime, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped
 
 from voices.db.base import Base
 
@@ -6,7 +10,7 @@ from voices.db.base import Base
 class BaseModel(Base):
     __abstract__ = True
 
-    id = Column(Integer, primary_key=True)
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), unique=True, primary_key=True, default=uuid.uuid4)
 
 
 class BaseDatetimeModel(BaseModel):

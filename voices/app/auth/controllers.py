@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+import uuid
+
+from fastapi import APIRouter, Depends, Query
 
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
+    JWTBearer,
     create_access_token,
     create_refresh_token,
     decode_token,
@@ -11,7 +14,14 @@ from voices.exceptions import PasswordMatchError, UserNotFoundError
 from voices.protocol import Response
 
 from .models import User
-from .views import Token, TokenData, UserLogin
+from .views import (
+    ProfileUpdateView,
+    ProfileView,
+    SearchListView,
+    Token,
+    TokenData,
+    UserLogin,
+)
 
 router = APIRouter()
 
@@ -23,10 +33,10 @@ async def register_user(body: UserLogin):
         if user:
             return Response(code=400, message="Email already taken")
 
-        await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
+        user_id: uuid.UUID = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
 
-    access_token = create_access_token(TokenData(email=body.email, role="USER"))
-    refresh_token = create_refresh_token(TokenData(email=body.email, role="USER"))
+    access_token = create_access_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
+    refresh_token = create_refresh_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
 
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),
@@ -43,8 +53,8 @@ async def authenticate_user(body: UserLogin):
     if not verify_password(body.password, user.hashed_password):
         raise PasswordMatchError
 
-    access_token = create_access_token(TokenData(email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(email=user.email, role=user.role))
+    access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),
@@ -58,9 +68,31 @@ async def post_refresh_token(body: Token):
     if not user:
         raise UserNotFoundError
 
-    access_token = create_access_token(TokenData(fullname=user.fullname, email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(fullname=user.fullname, email=user.email, role=user.role))
+    access_token = create_access_token(TokenData(sub=user.id, email=user.email, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id, email=user.email, role=user.role))
 
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),
     )
+
+
+@router.patch("/profile", response_model=Response[ProfileView])
+async def update_profile(body: ProfileUpdateView):
+    unset = body.dict(exclude_unset=True)
+
+    async with Transaction():
+        user = await User.update_profile(unset)
+
+    return Response(payload=ProfileView(email=user.email, role=user.role))
+
+
+@router.get("/profile", response_model=Response[ProfileView])
+async def get_profile(token: TokenData = Depends(JWTBearer())):
+    return Response(payload=ProfileView(email=token.email, role=token.role))
+
+
+@router.get("/search", response_model=Response[SearchListView])
+async def search_by_pattern(pattern: str = Query(min_length=3)):
+    async with Transaction():
+        users = await User.search_by_pattern(pattern=pattern)
+    return Response(payload=SearchListView(users=users))
