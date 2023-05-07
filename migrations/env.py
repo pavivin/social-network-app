@@ -1,10 +1,12 @@
 from alembic import context
 from sqlalchemy import create_engine
 
-from vizme.config import settings
-from vizme.db import Base
+from voices.config import settings
+from voices.db import Base
 
 config = context.config
+
+from voices.app.auth.models import *  # noqa
 
 
 def run_migrations_online() -> None:

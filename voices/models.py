@@ -1,6 +1,6 @@
 from sqlalchemy import Column, DateTime, Integer, func
 
-from vizme.db.base import Base
+from voices.db.base import Base
 
 
 class BaseModel(Base):

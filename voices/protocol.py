@@ -1,8 +1,6 @@
 from typing import Generic, TypeVar
 
 import orjson
-from blacksheep import Content
-from blacksheep.plugins import json as json_plugin
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field
 from pydantic.generics import GenericModel as PydanticGenericModel
@@ -11,7 +9,6 @@ DataT = TypeVar("DataT")
 
 
 def orjson_dumps(v, *, default):
-    # orjson.dumps returns bytes, to match standard json.dumps we need to decode
     return orjson.dumps(v, default=default).decode()
 
 
@@ -36,28 +33,8 @@ class Response(PydanticGenericModel, Generic[DataT]):
 
     code: int = Field(200, description="Код ответа (http-like)")
     message: str | None = Field(description="Описание кода ответа")
-    payload: DataT | None = Field(description="Тело ответа")
+    payload: DataT | None = Field(None, description="Тело ответа")
 
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
-
-
-json_plugin.use(
-    loads=orjson.loads,
-)
-
-
-def my_json(data: any, status: int = 200) -> Response:
-    """
-    Returns a response with application/json content,
-    and given status (default HTTP 200 OK).
-    """
-    return Response(
-        status,
-        None,
-        Content(
-            b"application/json",
-            orjson.dumps(data),
-        ),
-    )

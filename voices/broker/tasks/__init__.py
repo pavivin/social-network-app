@@ -1,4 +1,4 @@
-from vizme.broker import app
+from voices.broker import app
 
 
 @app.on_after_configure.connect

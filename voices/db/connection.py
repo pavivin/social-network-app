@@ -1,11 +1,21 @@
 from contextvars import ContextVar
+from functools import wraps
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from vizme.db.base import session_maker
+from voices.db.base import session_maker
 
 db_session: ContextVar[AsyncSession] = ContextVar("db_session", default=None)
-# TODO: pass automaticly in all db functions
+
+
+def auto_session(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        session = db_session.get()
+        return_value = func(session=session, *args, **kwargs)
+        return return_value
+
+    return wrapper
 
 
 class Transaction:

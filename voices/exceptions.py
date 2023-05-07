@@ -9,9 +9,10 @@ class ApiException(Exception):
     status_code: int = 500
     message: str = "Упс! Что-то пошло не так ;("
 
-    def __init__(self, message: str | None = None, payload: Mapping | None = None):
+    def __init__(self, message: str | None = None, payload: Mapping | None = None, debug=None):
         self.message = message or self.message
         self.payload = payload
+        self.debug = debug
 
     def to_json(self) -> Mapping:
         return {"code": self.status_code, "message": self.message, "payload": self.payload}
@@ -29,6 +30,22 @@ class NotFoundError(ApiException):
 
 class BadRequestError(ApiException):
     status_code = 400
+    message = "Bad Request"
+
+
+class UserNotFoundError(ApiException):
+    status_code = 400
+    message = "User not found"
+
+
+class PasswordMatchError(ApiException):
+    status_code = 400
+    message = "Password doesn't match"
+
+
+class UnauthorizedError(ApiException):
+    status_code = 401
+    message = "Unauthorized"
 
 
 class ForbiddenError(ApiException):

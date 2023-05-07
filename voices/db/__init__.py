@@ -1,9 +1,8 @@
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import sessionmaker
 
-from .base import Base, engine
+from .base import Base, engine, session_maker
 
 
 async def init_db():
@@ -18,14 +17,17 @@ async def drop_db():
 
 
 async def get_session() -> AsyncSession:
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with async_session() as session:
+    async with session_maker() as session:
+        yield session
+
+
+async def get_test_session() -> AsyncSession:
+    async with session_maker() as session:
         yield session
 
 
 @asynccontextmanager
 async def get_session_context() -> AsyncSession:
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with async_session() as session:
+    async with session_maker() as session:
         yield session
         await session.close()

@@ -15,7 +15,6 @@ packages = [{include = "vizme_backend"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-blacksheep = "^1.2.12"
 SQLAlchemy = {extras = ["asyncpg"], version = "^2.0.9"}
 httpx = "^0.24.0"
 celery = {extras = ["redis"], version = "^5.2.7"}
@@ -31,6 +30,11 @@ async-factory-boy = "^1.0.0"
 psycopg2-binary = "^2.9.6"
 python-socketio = "^5.8.0"
 aiohttp = "^3.8.4"
+fastapi = "^0.95.1"
+sqladmin = "^0.10.3"
+passlib = "^1.7.4"
+python-jose = "^3.3.0"
+bcrypt = "^4.0.1"
 
 
 [build-system]
