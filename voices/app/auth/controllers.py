@@ -1,6 +1,5 @@
-import uuid
-
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
@@ -13,6 +12,7 @@ from voices.db.connection import Transaction
 from voices.exceptions import PasswordMatchError, UserNotFoundError
 from voices.protocol import Response
 
+from ...db import get_session
 from .models import User
 from .views import (
     ProfileUpdateView,
@@ -22,8 +22,7 @@ from .views import (
     TokenData,
     UserLogin,
 )
-from ...db import get_session
-from sqlalchemy.ext.asyncio import AsyncSession
+
 router = APIRouter()
 
 
