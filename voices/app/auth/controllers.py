@@ -22,19 +22,19 @@ from .views import (
     TokenData,
     UserLogin,
 )
-
+from ...db import get_session
+from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter()
 
 
 @router.post("/registration", response_model=Response[Token])
-async def register_user(body: UserLogin):
-    async with Transaction():
+async def register_user(body: UserLogin, session: AsyncSession = Depends(get_session)):
+    async with Transaction(session=session):
         user = await User.get_by_email(body.email)
         if user:
             return Response(code=400, message="Email already taken")
 
-        user_id: uuid.UUID = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
-
+        user_id = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
     access_token = create_access_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
     refresh_token = create_refresh_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
 

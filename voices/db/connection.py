@@ -19,8 +19,10 @@ def auto_session(func):
 
 
 class Transaction:
+    def __init__(self, session: AsyncSession = session_maker()):
+        self.session = session
+
     async def __aenter__(self):
-        self.session: AsyncSession = session_maker()
         self.token = db_session.set(self.session)
 
     async def __aexit__(self, exception_type, exception, traceback):
