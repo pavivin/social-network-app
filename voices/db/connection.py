@@ -3,8 +3,6 @@ from functools import wraps
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from voices.db.base import session_maker
-
 db_session: ContextVar[AsyncSession] = ContextVar("db_session", default=None)
 
 
@@ -19,7 +17,7 @@ def auto_session(func):
 
 
 class Transaction:
-    def __init__(self, session: AsyncSession = session_maker()):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def __aenter__(self):

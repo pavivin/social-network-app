@@ -43,8 +43,8 @@ async def register_user(body: UserLogin, session: AsyncSession = Depends(get_ses
 
 
 @router.post("/login", response_model=Response[Token])
-async def authenticate_user(body: UserLogin):
-    async with Transaction():
+async def authenticate_user(body: UserLogin, session: AsyncSession = Depends(get_session)):
+    async with Transaction(session=session):
         user = await User.get_by_email(body.email)
 
     if not user:
