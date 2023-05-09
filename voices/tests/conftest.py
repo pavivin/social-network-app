@@ -5,7 +5,7 @@ from asyncio import get_event_loop_policy
 import pytest
 import pytest_asyncio
 from factory.base import FactoryMetaClass
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from main import app
@@ -49,5 +49,5 @@ def init_factories(session: AsyncSession) -> None:
 
 
 @pytest.fixture
-def client() -> TestClient:
-    yield TestClient(app=app, base_url="http://test")
+def client() -> AsyncClient:
+    yield AsyncClient(app=app, base_url="http://test")
