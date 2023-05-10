@@ -32,6 +32,4 @@ RUN set -ex \
 
 COPY . .
 
-CMD ["python", "main.py"]
-
 USER appuser
