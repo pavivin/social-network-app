@@ -78,3 +78,4 @@ volumes:
   postgres_data:
 networks:
   voices-dev:
+    external: true
