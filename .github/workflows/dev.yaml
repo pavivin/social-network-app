@@ -93,5 +93,7 @@ jobs:
         run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
       - name: Prepare env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env
-      - name: Deploy api and chat
+      - name: Kill api and chat
+        run: docker compose down api chat
+      - name: Recreate api and chat
         run: docker compose up -d api chat
