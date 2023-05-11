@@ -46,7 +46,7 @@ jobs:
       - name: Prepare env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Start services
-        run: docker compose up -d db neo4j
+        run: docker compose up -p voices-dev -d db neo4j
 
   migrate:
     runs-on: ubuntu-latest
@@ -71,7 +71,7 @@ jobs:
       - name: Prepare env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Migrate db
-        run: docker run startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") --name voices-migrate-job --network voices alembic upgrade head
+        run: docker run startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") --network voices-dev alembic upgrade head
 
   deploy-api-and-chat:
     runs-on: ubuntu-latest
@@ -98,4 +98,4 @@ jobs:
       - name: Kill api and chat
         run: docker compose down api chat
       - name: Recreate api and chat
-        run: docker compose up -d api chat
+        run: docker compose up -p voices-dev -d api chat
