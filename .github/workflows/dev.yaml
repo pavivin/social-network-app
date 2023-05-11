@@ -10,13 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - id: ssh-context
-        uses: invi5H/ssh-action@v1
-        with:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-      - run: echo ${{ steps.ssh-foo.outputs.SERVER }}
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Test commit
@@ -43,13 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: ssh-context
-        uses: actions/ssh-context@a59d13f18e649fe7860fef66de2cd12605887af2
+        uses: invi5H/ssh-action@v1
         with:
-          private-key-contents: $${{ secrets.SSH_KEY }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-user: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
       - name: Update docker host
-        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
       - name: Start services
         run: docker compose up -d db neo4j
 
@@ -59,18 +52,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: ssh-context
-        uses: actions/ssh-context@a59d13f18e649fe7860fef66de2cd12605887af2
+        uses: invi5H/ssh-action@v1
         with:
-          private-key-contents: $${{ secrets.SSH_KEY }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-user: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: startupcifra
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Update docker host
-        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
       - name: Update docker tag
         run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
       - name: Migrate db
@@ -82,18 +75,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: ssh-context
-        uses: actions/ssh-context@a59d13f18e649fe7860fef66de2cd12605887af2
+        uses: invi5H/ssh-action@v1
         with:
-          private-key-contents: $${{ secrets.SSH_KEY }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-user: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: startupcifra
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Update docker host
-        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
       - name: Update docker tag
         run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
       - name: Deploy api and chat
