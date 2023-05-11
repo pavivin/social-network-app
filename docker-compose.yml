@@ -2,8 +2,8 @@ version: '3.7'
 services:
   db:
     image: postgres
-    ports:
-      - 5432:5432
+#    ports:
+#      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
@@ -19,8 +19,8 @@ services:
     command:
       - python
       - main.py
-    ports:
-      - 5000:5000
+#    ports:
+#      - 5000:5000
     env_file:
       - .env
     environment:
@@ -41,8 +41,8 @@ services:
     command:
       - python
       - server.py
-    ports:
-      - 8000:8000
+#    ports:
+#      - 8000:8000
     env_file:
       - .env
     environment:
@@ -60,9 +60,9 @@ services:
       - .:/chat-app
   neo4j:
     image: neo4j:latest
-    ports:
-      - "7474:7474"
-      - "7687:7687"
+#    ports:
+#      - "7474:7474"
+#      - "7687:7687"
     networks:
       - voices-dev
     environment:
