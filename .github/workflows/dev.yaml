@@ -66,12 +66,14 @@ jobs:
         run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
       - name: Update docker tag
         run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
+      - name: Prepare env
+        run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Migrate db
         run: docker run startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") --name voices-migrate-job --network voices alembic upgrade head
 
   deploy-api-and-chat:
     runs-on: ubuntu-latest
-    needs: [ deploy-services ]
+    needs: [ migrate ]
     steps:
       - uses: actions/checkout@v3
       - id: ssh-context
@@ -89,5 +91,7 @@ jobs:
         run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
       - name: Update docker tag
         run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
+      - name: Prepare env
+        run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Deploy api and chat
         run: docker compose up -d api chat
