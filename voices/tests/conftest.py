@@ -7,12 +7,11 @@ import pytest_asyncio
 from factory.base import FactoryMetaClass
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
 
 from main import app
-from voices.db import Base, get_session, get_test_session
-from voices.db.base import test_engine, test_session_maker
-
-app.dependency_overrides[get_session] = get_test_session
+from voices.db import Base
+from voices.db.base import TestSessionMaker, container, test_engine, test_session_maker
 
 
 @pytest.fixture(scope="session")
@@ -50,4 +49,5 @@ def init_factories(session: AsyncSession) -> None:
 
 @pytest.fixture
 def client() -> AsyncClient:
+    container.register(sessionmaker, TestSessionMaker)
     yield AsyncClient(app=app, base_url="http://test")

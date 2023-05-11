@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped
 
 from voices.db.connection import auto_session
 from voices.models import BaseDatetimeModel
+from voices.utils import count_max_length
 
 
 class User(BaseDatetimeModel):
@@ -16,10 +17,10 @@ class User(BaseDatetimeModel):
         USER = "USER"
         ADMIN = "ADMIN"
 
-    first_name: Mapped[str] = sa.Column(sa.String, nullable=True)
-    last_name: Mapped[str] = sa.Column(sa.String, nullable=True)
-    email: Mapped[str] = sa.Column(sa.String, unique=True, index=True, nullable=False)
-    role: Mapped[str] = sa.Column(sa.String, nullable=False, default=UserRole.USER)
+    first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
+    last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
+    email: Mapped[str] = sa.Column(sa.String(length=254), unique=True, index=True, nullable=False)
+    role: Mapped[str] = sa.Column(sa.String(length=count_max_length(UserRole)), nullable=False, default=UserRole.USER)
     hashed_password: Mapped[str] = sa.Column(sa.String, nullable=False)
 
     @staticmethod

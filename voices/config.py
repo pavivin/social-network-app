@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     AUTH_PUBLIC_KEY_DATA: str = None
     AUTH_PRIVATE_KEY_DATA: str = None
 
+    INITIATIVE_PAGE_SIZE = 20
+
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
         if v and isinstance(v, str):

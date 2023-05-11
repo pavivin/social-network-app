@@ -36,6 +36,8 @@ passlib = "^1.7.4"
 python-jose = "^3.3.0"
 bcrypt = "^4.0.1"
 pytest-factoryboy = "^2.5.1"
+geoalchemy2 = "^0.13.2"
+punq = "^0.6.2"
 
 
 [build-system]

@@ -734,6 +734,22 @@ files = [
 ]
 
 [[package]]
+name = "geoalchemy2"
+version = "0.13.2"
+description = "Using SQLAlchemy with Spatial Databases"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "GeoAlchemy2-0.13.2-py3-none-any.whl", hash = "sha256:5723f302c54a22ae9b2fd37eed4d26bb7f0be96b2d4d3dd8ec488ecd5d7dfa6e"},
+    {file = "GeoAlchemy2-0.13.2.tar.gz", hash = "sha256:164c17ec4e566e4751ec1e8906e1c10316203a0535e6c5f80f7d7252791fd1f5"},
+]
+
+[package.dependencies]
+packaging = "*"
+SQLAlchemy = ">=1.4"
+
+[[package]]
 name = "greenlet"
 version = "2.0.2"
 description = "Lightweight in-process concurrent programming"
@@ -1314,6 +1330,18 @@ files = [
     {file = "psycopg2_binary-2.9.6-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:02c0f3757a4300cf379eb49f543fb7ac527fb00144d39246ee40e1df684ab514"},
     {file = "psycopg2_binary-2.9.6-cp39-cp39-win32.whl", hash = "sha256:c3dba7dab16709a33a847e5cd756767271697041fbe3fe97c215b1fc1f5c9848"},
     {file = "psycopg2_binary-2.9.6-cp39-cp39-win_amd64.whl", hash = "sha256:f6a88f384335bb27812293fdb11ac6aee2ca3f51d3c7820fe03de0a304ab6249"},
+]
+
+[[package]]
+name = "punq"
+version = "0.6.2"
+description = "An IOC Container for Python 3.6+"
+category = "main"
+optional = false
+python-versions = ">=3.6.2,<4.0.0"
+files = [
+    {file = "punq-0.6.2-py3-none-any.whl", hash = "sha256:8d365bdc01038897dfcc0c9bf63bc8910a95afc46e5e427c2a7abbda7144502b"},
+    {file = "punq-0.6.2.tar.gz", hash = "sha256:4d824c92ca640feefb080c1ecdd034e37f79833b3cb88dacac38ed7e048f4dca"},
 ]
 
 [[package]]
@@ -1944,4 +1972,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "90691b610a89e7887ae88b7d4810a28740bbac94888e2affd9c1e46f62d53210"
+content-hash = "17fd4f889cdb82b2992b83fe4cab535cd111ca763f73b7e4ae98c9779d75fd88"
