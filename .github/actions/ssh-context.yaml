@@ -1,0 +1,33 @@
+name: 'SSH context'
+description: 'Adds ssh config and private key for connecting to host'
+inputs:
+  private-key-contents:
+    description: 'Contents of private key'
+    required: true
+  ssh-host:
+    description: 'Name or IP address of host'
+    required: true
+  ssh-user:
+    description: 'User on host for deploying with docker group'
+    required: true
+outputs:
+  config-entry-name:
+    description: "Result config entry"
+    value: ${{ steps.random-entry-name-generator.outputs.random-name }}
+  private-key-path:
+    description: "Private key path"
+    value: /tmp/${{ steps.random-entry-name-generator.outputs.random-name }}
+runs:
+  using: "composite"
+  steps:
+    - id: random-entry-name-generator
+      run: echo "random-name=$(echo $RANDOM)" >> $GITHUB_OUTPUT
+      shell: bash
+    - run: echo "${{ inputs.private-key-contents }}" > /tmp/${{ steps.random-entry-name-generator.outputs.random-name }}
+      shell: bash
+    - run: printf "Host ${{ steps.random-entry-name-generator.outputs.random-name }}\n"\
+                  "\tUser ${{ inputs.ssh-user }}\n"\
+                  "\tHostName ${{ inputs.ssh-host }}\n"\
+                  "\tPreferredAuthentications publickey\n"\
+                  "\tIdentityFile /tmp/${{ steps.random-entry-name-generator.outputs.random-name }}"\
+                  >> ~/.ssh/config

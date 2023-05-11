@@ -1,0 +1,93 @@
+name: Workflow для dev ветки
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Test commit
+        run: pre-commit run -a
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: startupcifra
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build the Docker image
+        run: docker build . -t startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA")
+      - name: Push the Docker image
+        run: docker push startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA")
+
+  deploy-services:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@v3
+      - id: ssh-context
+        uses: actions/ssh-context@v1
+        with:
+          private-key-contents: $${{ secrets.SSH_KEY }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+      - name: Update docker host
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+      - name: Start services
+        run: docker compose up -d db neo4j
+
+  migrate:
+    runs-on: ubuntu-latest
+    needs: [deploy-services]
+    steps:
+      - uses: actions/checkout@v3
+      - id: ssh-context
+        uses: actions/ssh-context@v1
+        with:
+          private-key-contents: $${{ secrets.SSH_KEY }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: startupcifra
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Update docker host
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+      - name: Update docker tag
+        run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
+      - name: Migrate db
+        run: docker run startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") --name voices-migrate-job --network voices alembic upgrade head
+
+  deploy-api-and-chat:
+    runs-on: ubuntu-latest
+    needs: [ deploy-services ]
+    steps:
+      - uses: actions/checkout@v3
+      - id: ssh-context
+        uses: actions/ssh-context@v1
+        with:
+          private-key-contents: $${{ secrets.SSH_KEY }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: startupcifra
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Update docker host
+        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.config-entry-name }}
+      - name: Update docker tag
+        run: export TAG=$(git rev-parse --short "$GITHUB_SHA")
+      - name: Deploy api and chat
+        run: docker compose up -d api chat
