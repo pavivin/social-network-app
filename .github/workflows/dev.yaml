@@ -11,11 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: ssh-context
-        uses: actions/ssh-context
+        uses: invi5H/ssh-action@v1
         with:
-          private-key-contents: $${{ secrets.SSH_KEY }}
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-user: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+      - run: echo ${{ steps.ssh-foo.outputs.SERVER }}
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Test commit
