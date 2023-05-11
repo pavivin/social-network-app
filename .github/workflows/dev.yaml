@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - id: ssh-context
+        uses: actions/ssh-context@a59d13f18e649fe7860fef66de2cd12605887af2
+        with:
+          private-key-contents: $${{ secrets.SSH_KEY }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Test commit
