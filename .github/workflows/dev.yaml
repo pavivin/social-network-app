@@ -43,6 +43,8 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
       - name: Update docker host
         run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
+      - name: Prepare env
+        run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Start services
         run: docker compose up -d db neo4j
 
