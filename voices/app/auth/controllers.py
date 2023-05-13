@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
@@ -9,10 +8,9 @@ from voices.auth.jwt_token import (
     decode_token,
 )
 from voices.db.connection import Transaction
-from voices.exceptions import PasswordMatchError, UserNotFoundError
+from voices.exceptions import BadRequestError, PasswordMatchError, UserNotFoundError
 from voices.protocol import Response
 
-from ...db import get_session
 from .models import User
 from .views import (
     ProfileUpdateView,
@@ -27,13 +25,14 @@ router = APIRouter()
 
 
 @router.post("/registration", response_model=Response[Token])
-async def register_user(body: UserLogin, session: AsyncSession = Depends(get_session)):
-    async with Transaction(session=session):
+async def register_user(body: UserLogin):
+    async with Transaction():
         user = await User.get_by_email(body.email)
         if user:
-            return Response(code=400, message="Email already taken")
+            raise BadRequestError("Email already taken")
 
         user_id = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
+
     access_token = create_access_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
     refresh_token = create_refresh_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
 
@@ -43,8 +42,8 @@ async def register_user(body: UserLogin, session: AsyncSession = Depends(get_ses
 
 
 @router.post("/login", response_model=Response[Token])
-async def authenticate_user(body: UserLogin, session: AsyncSession = Depends(get_session)):
-    async with Transaction(session=session):
+async def authenticate_user(body: UserLogin):
+    async with Transaction():
         user = await User.get_by_email(body.email)
 
     if not user:
@@ -63,7 +62,8 @@ async def authenticate_user(body: UserLogin, session: AsyncSession = Depends(get
 @router.post("/refresh-token", response_model=Response[Token])
 async def post_refresh_token(body: Token):
     _token = decode_token(body.refresh_token)
-    user = await User.get_by_email(_token.email)
+    async with Transaction():
+        user = await User.get_by_id(_token.sub)
     if not user:
         raise UserNotFoundError
 
