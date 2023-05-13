@@ -1,17 +1,18 @@
 version: '3.7'
 services:
   db:
-    image: postgres
+    image: bitnami/postgresql:15.1.0
 #    ports:
 #      - 5432:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/bitnami/postgresql
     env_file:
       - .env
     environment:
-      - POSTGRES_DB=${POSTGRES_USER}
-      - POSTGRES_USER=${POSTGRES_PASSWORD}
-      - POSTGRES_PASSWORD=${POSTGRES_DATABASE}
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_REPLICATION_MODE=master
     networks:
       - voices-dev
   web:
@@ -51,7 +52,6 @@ services:
       - ${HOME}/neo4j/logs:/logs
       - ${HOME}/neo4j/import:/var/lib/neo4j/import
       - ${HOME}/neo4j/plugins:/plugins
-
 volumes:
   postgres_data:
 networks:
