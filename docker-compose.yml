@@ -36,28 +36,6 @@ services:
       - voices-dev
     volumes:
       - .:/app
-  chat:
-    image: startupcifra/voices-backend:${IMAGE_TAG}
-    command:
-      - python
-      - server.py
-#    ports:
-#      - 8000:8000
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-    restart: always
-    depends_on:
-      - db
-    networks:
-      - voices-dev
-    volumes:
-      - .:/chat-app
   neo4j:
     image: neo4j:latest
 #    ports:
@@ -66,7 +44,7 @@ services:
     networks:
       - voices-dev
     environment:
-      - NEO4J_AUTH=neo4j/eco_system
+      - NEO4J_AUTH=${NEO4J_AUTH}
       - NEO4J_dbms_memory_pagecache_size=64M
     volumes:
       - ${HOME}/neo4j/data:/data
