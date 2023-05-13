@@ -46,14 +46,10 @@ jobs:
         with:
           username: startupcifra
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Update docker host
-        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
-      - name: Update docker tag
-        run: export IMAGE_TAG=$(git rev-parse --short "$GITHUB_SHA")
       - name: Load env
-        run: echo "${{ secrets.ENV_CONTENTS}}" > .env && export $(cat .env)
+        run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Migrate db
-        run: docker run --env-file .env --network voices-dev startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") alembic upgrade head
+        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker run --env-file .env --network voices-dev startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") alembic upgrade head
 
   deploy:
     runs-on: ubuntu-latest
@@ -71,13 +67,11 @@ jobs:
         with:
           username: startupcifra
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Update docker host
-        run: export DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }}
-      - name: Update docker tag
-        run: export IMAGE_TAG=$(git rev-parse --short "$GITHUB_SHA")
       - name: Prepare env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env
-      - name: Kill api and chat
-        run: docker compose down api chat
+      - name: Update docker tag
+        run: echo "IMAGE_TAG=$(git rev-parse --short "$GITHUB_SHA")" >> .env
+      - name: Kill previous deployment
+        run: docker compose down api
       - name: Recreate api and chat
-        run: docker compose -p voices-dev up -d api
+        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker compose -p voices-dev up -d api
