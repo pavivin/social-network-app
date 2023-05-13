@@ -53,7 +53,7 @@ jobs:
       - name: Load env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env && export $(cat .env)
       - name: Migrate db
-        run: docker run --env-file .env --network voices-dev startupcifra/voices-backend:${IMAGE_TAG} alembic upgrade head
+        run: docker run --env-file .env --network voices-dev startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") alembic upgrade head
 
   deploy:
     runs-on: ubuntu-latest
