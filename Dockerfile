@@ -31,5 +31,3 @@ RUN set -ex \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-
-USER appuser
