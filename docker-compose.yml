@@ -17,11 +17,6 @@ services:
       - voices-dev
   web:
     image: startupcifra/voices-backend:${IMAGE_TAG}
-    command:
-      - poetry
-      - run
-      - python
-      - main.py
     ports:
       - 5000:5000
     env_file:
@@ -37,8 +32,11 @@ services:
       - db
     networks:
       - voices-dev
-    volumes:
-      - .:/app
+    command:
+      - poetry
+      - run
+      - python
+      - main.py
   neo4j:
     image: neo4j:latest
     ports:
