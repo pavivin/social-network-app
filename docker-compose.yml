@@ -33,8 +33,6 @@ services:
     networks:
       - voices-dev
     command:
-      - poetry
-      - run
       - python
       - main.py
   neo4j:
