@@ -49,7 +49,7 @@ jobs:
       - name: Load env
         run: echo "${{ secrets.ENV_CONTENTS}}" > .env
       - name: Migrate db
-        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker run --env-file .env --network voices-dev startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") alembic upgrade head
+        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker run --env-file .env --network voices-dev startupcifra/voices-backend:$(git rev-parse --short "$GITHUB_SHA") poetry run alembic upgrade head
 
   deploy:
     runs-on: ubuntu-latest

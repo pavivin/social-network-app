@@ -18,6 +18,8 @@ services:
   web:
     image: startupcifra/voices-backend:${IMAGE_TAG}
     command:
+      - poetry
+      - run
       - python
       - main.py
     ports:
