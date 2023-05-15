@@ -2,8 +2,8 @@ version: '3.7'
 services:
   db:
     image: bitnami/postgresql:15.1.0
-#    ports:
-#      - 5432:5432
+    ports:
+      - 5432:5432
     volumes:
       - postgres_data:/bitnami/postgresql
     env_file:
@@ -21,7 +21,7 @@ services:
       - python
       - main.py
     ports:
-      - 9000:9000
+      - 5000:5000
     env_file:
       - .env
     environment:
@@ -39,9 +39,9 @@ services:
       - .:/app
   neo4j:
     image: neo4j:latest
-#    ports:
-#      - "7474:7474"
-#      - "7687:7687"
+    ports:
+      - "7474:7474"
+      - "7687:7687"
     networks:
       - voices-dev
     environment:
