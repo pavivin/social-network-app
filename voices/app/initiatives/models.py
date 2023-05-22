@@ -27,6 +27,8 @@ class Initiative(BaseDatetimeModel):
     location = sa.Column(Geometry("POINT"), nullable=True)
     title: Mapped[str] = sa.Column(sa.String(length=100), nullable=False)
     main_text: Mapped[str] = sa.Column(sa.String, nullable=False)
+    likes_count: Mapped[int] = sa.Column(sa.Integer, default=0, nullable=False)
+    comments_count: Mapped[int] = sa.Column(sa.Integer, default=0, nullable=False)
 
     @staticmethod
     async def get_feed(
