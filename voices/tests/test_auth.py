@@ -28,7 +28,7 @@ async def test_register(session: AsyncSession, client: AsyncClient):
     result = (await session.execute(query)).scalars().first()
     assert result == 0
 
-    data = {"email": "string", "password": "password"}
+    data = {"email": "string@string.ru", "password": "password"}
     response = await client.post("/api/registration", json=data)
     assert response.json()["code"] == 200
 

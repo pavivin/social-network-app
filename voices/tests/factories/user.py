@@ -13,7 +13,7 @@ faker = FakerFactory.create()
 class UserFactory(AsyncSQLAlchemyFactory):
     first_name = factory.LazyAttribute(lambda x: faker.name())
     last_name = factory.LazyAttribute(lambda x: faker.name())
-    email = factory.LazyAttribute(lambda x: faker.name())
+    email = factory.LazyAttribute(lambda x: faker.email())
     role = "USER"
     hashed_password = factory.LazyAttribute(lambda x: get_password_hash("password"))
 

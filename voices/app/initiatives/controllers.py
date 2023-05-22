@@ -15,17 +15,6 @@ async def get_feed(category: Initiative.Category | None = None):
 
     return Response(
         payload=InitiativeListView(
-            feed=[
-                InitiativeView(
-                    user_id=initiative.user_id,
-                    city=initiative.city,
-                    images=initiative.images,
-                    category=initiative.category,
-                    location=initiative.location,
-                    title=initiative.title,
-                    main_text=initiative.main_text,
-                )
-                for initiative in feed
-            ],
+            feed=[InitiativeView.from_orm(initiative) for initiative in feed],
         )
     )

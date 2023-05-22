@@ -18,6 +18,8 @@ class InitiativeView(BaseModel):
     location: GeometryPoint | None
     title: str
     main_text: str
+    likes_count: int
+    comments_count: int
 
 
 class InitiativeListView(BaseModel):
