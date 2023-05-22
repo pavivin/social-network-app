@@ -19,7 +19,7 @@ SQLAlchemy = {extras = ["asyncpg"], version = "^2.0.9"}
 httpx = "^0.24.0"
 celery = {extras = ["redis"], version = "^5.2.7"}
 orjson = "^3.8.10"
-pydantic = "^1.10.7"
+pydantic = {extras = ["email"], version = "^1.10.7"}
 alembic = "^1.10.3"
 pytest-asyncio = "^0.21.0"
 python-dotenv = "^1.0.0"
@@ -38,6 +38,7 @@ bcrypt = "^4.0.1"
 pytest-factoryboy = "^2.5.1"
 geoalchemy2 = "^0.13.2"
 punq = "^0.6.2"
+shapely = "^2.0.1"
 
 
 [build-system]

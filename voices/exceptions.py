@@ -9,10 +9,13 @@ class ApiException(Exception):
     status_code: int = 500
     message: str = "Упс! Что-то пошло не так ;("
 
-    def __init__(self, message: str | None = None, payload: Mapping | None = None, debug=None):
+    def __init__(self, message: str | None = None, payload: Mapping | None = None, exception_class: str | None = None):
         self.message = message or self.message
         self.payload = payload
-        self.debug = debug
+        self.exception_class = exception_class
+
+    def _type(self):
+        return self.__class__.__name__
 
     def to_json(self) -> Mapping:
         return {"code": self.status_code, "message": self.message, "payload": self.payload}
@@ -28,9 +31,18 @@ class NotFoundError(ApiException):
     message = "Not Found"
 
 
+class ObjectNotFoundError(ApiException):
+    status_code = 404
+    message = "Not Found"
+
+
 class BadRequestError(ApiException):
     status_code = 400
     message = "Bad Request"
+
+
+class ValidationError(ApiException):
+    status_code = 400
 
 
 class UserNotFoundError(ApiException):
@@ -53,6 +65,11 @@ class ForbiddenError(ApiException):
     message = "Forbidden"
 
 
-class UpgradeRequiredError(ApiException):
+class JWTExpiredSignatureError(ApiException):
     status_code = 426
-    message = "Upgrade required"
+    message = "Token expired"
+
+
+class JWTDecodeError(ApiException):
+    status_code = 401
+    message = "Token decode error"

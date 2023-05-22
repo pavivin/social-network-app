@@ -2,11 +2,11 @@ import uuid
 from enum import StrEnum
 
 import sqlalchemy as sa
+from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
-from voices.db.connection import auto_session
+from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
 
@@ -23,19 +23,18 @@ class Initiative(BaseDatetimeModel):
     city: Mapped[str] = sa.Column(sa.String(length=35))
 
     images: Mapped[JSONB] = sa.Column(JSONB)
-    category: Mapped[str] = sa.Column(sa.String(length=count_max_length(Category)))  # TODO: to enum
-    # TODO: GeoAlchemy2
-    # location = sa.Column()
+    category: Mapped[str] = sa.Column(sa.String(length=count_max_length(Category)))
+    location = sa.Column(Geometry("POINT"), nullable=True)
+    title: Mapped[str] = sa.Column(sa.String(length=100), nullable=False)
+    main_text: Mapped[str] = sa.Column(sa.String, nullable=False)
 
     @staticmethod
-    @auto_session
     async def get_feed(
         city: str,
         category: Category = None,
-        session: AsyncSession = None,
         last_id: uuid.UUID | None = None,
     ):
-        query = sa.select(Initiative).where(Initiative.city == city)
+        query = sa.select(Initiative).where(Initiative.city == city).where(Initiative.deleted_at.is_(None))
 
         if category:
             query = query.where(Initiative.category == category)
@@ -43,5 +42,5 @@ class Initiative(BaseDatetimeModel):
         if last_id:
             query = query.where(Initiative.id > last_id)
 
-        result = (await session.execute(query)).scalars().first()
-        return result
+        result = await db_session.get().execute(query)
+        return result.scalars().all()

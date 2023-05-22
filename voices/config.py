@@ -35,7 +35,12 @@ class Settings(BaseSettings):
     AUTH_PUBLIC_KEY_DATA: str = None
     AUTH_PRIVATE_KEY_DATA: str = None
 
-    INITIATIVE_PAGE_SIZE = 20
+    DEFAULT_PAGE_SIZE = 20
+
+    RAW_OBSCENE_WORDS_FILE = "obscene_words.txt"
+    NORMALIZED_OBSCENE_WORDS_FILE = "normalized_words.txt"
+
+    FILE_ENCODING = "UTF-8"
 
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):

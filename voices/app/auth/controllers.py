@@ -12,14 +12,7 @@ from voices.exceptions import BadRequestError, PasswordMatchError, UserNotFoundE
 from voices.protocol import Response
 
 from .models import User
-from .views import (
-    ProfileUpdateView,
-    ProfileView,
-    SearchListView,
-    Token,
-    TokenData,
-    UserLogin,
-)
+from .views import ProfileView, SearchListView, Token, TokenData, UserLogin
 
 router = APIRouter()
 
@@ -64,6 +57,7 @@ async def post_refresh_token(body: Token):
     _token = decode_token(body.refresh_token)
     async with Transaction():
         user = await User.get_by_id(_token.sub)
+
     if not user:
         raise UserNotFoundError
 
@@ -76,22 +70,26 @@ async def post_refresh_token(body: Token):
 
 
 @router.patch("/profile", response_model=Response[ProfileView])
-async def update_profile(body: ProfileUpdateView):
+async def update_profile(body: ProfileView):
     unset = body.dict(exclude_unset=True)
 
     async with Transaction():
         user = await User.update_profile(unset)
 
-    return Response(payload=ProfileView(email=user.email, role=user.role))
+    return Response(payload=ProfileView.from_orm(user))
 
 
 @router.get("/profile", response_model=Response[ProfileView])
 async def get_profile(token: TokenData = Depends(JWTBearer())):
-    return Response(payload=ProfileView(email=token.email, role=token.role))
+    async with Transaction():
+        user = await User.get_by_id(id=token.sub)
+
+    return Response(payload=ProfileView.from_orm(user))
 
 
 @router.get("/search", response_model=Response[SearchListView])
-async def search_by_pattern(pattern: str = Query(min_length=3)):
+async def search_by_pattern(pattern: str = Query(min_length=2)):
     async with Transaction():
         users = await User.search_by_pattern(pattern=pattern)
+
     return Response(payload=SearchListView(users=users))

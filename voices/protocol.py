@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 
 import orjson
+from geoalchemy2.shape import to_shape
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field
 from pydantic.generics import GenericModel as PydanticGenericModel
@@ -34,7 +35,25 @@ class Response(PydanticGenericModel, Generic[DataT]):
     code: int = Field(200, description="Код ответа (http-like)")
     message: str | None = Field(description="Описание кода ответа")
     payload: DataT | None = Field(None, description="Тело ответа")
+    exception_class: str | None = Field(None, description="Имя класса ошибки")
 
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
+
+
+class GeometryPoint(dict):
+    lat: float
+    lon: float
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if isinstance(v, dict):
+            return v
+
+        shape = to_shape(v)
+        return {"lat": shape.x, "lon": shape.y}

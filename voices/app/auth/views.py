@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from pydantic import AnyUrl, EmailStr
+
 from voices.protocol import BaseModel
 
 from .models import User
@@ -12,32 +14,28 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     sub: str
-    email: str
+    email: EmailStr
     role: User.UserRole
     exp: datetime | None
 
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
-class ProfileUpdateView(BaseModel):
+class ProfileView(BaseModel):
     first_name: str = None
     last_name: str = None
-    email: str
-    role: str
-
-
-class ProfileView(BaseModel):
-    email: str
+    image_url: AnyUrl | None = None
+    email: EmailStr
     role: str
 
 
 class UserView(BaseModel):
     first_name: str = None
     last_name: str = None
-    email: str
+    email: EmailStr
 
 
 class SearchListView(BaseModel):
