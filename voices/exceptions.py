@@ -41,6 +41,11 @@ class BadRequestError(ApiException):
     message = "Bad Request"
 
 
+class EmailTakenError(ApiException):
+    status_code = 400
+    message = "Email already taken"
+
+
 class ValidationError(ApiException):
     status_code = 400
 

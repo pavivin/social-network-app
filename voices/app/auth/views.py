@@ -19,6 +19,10 @@ class TokenData(BaseModel):
     exp: datetime | None
 
 
+class CheckUserLogin(BaseModel):
+    email: EmailStr
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str

@@ -8,11 +8,18 @@ from voices.auth.jwt_token import (
     decode_token,
 )
 from voices.db.connection import Transaction
-from voices.exceptions import BadRequestError, PasswordMatchError, UserNotFoundError
+from voices.exceptions import EmailTakenError, PasswordMatchError, UserNotFoundError
 from voices.protocol import Response
 
 from .models import User
-from .views import ProfileView, SearchListView, Token, TokenData, UserLogin
+from .views import (
+    CheckUserLogin,
+    ProfileView,
+    SearchListView,
+    Token,
+    TokenData,
+    UserLogin,
+)
 
 router = APIRouter()
 
@@ -22,7 +29,7 @@ async def register_user(body: UserLogin):
     async with Transaction():
         user = await User.get_by_email(body.email)
         if user:
-            raise BadRequestError("Email already taken")
+            raise EmailTakenError
 
         user_id = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
 
@@ -32,6 +39,16 @@ async def register_user(body: UserLogin):
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),
     )
+
+
+@router.post("/check-email", response_model=Response)
+async def check_mail(body: CheckUserLogin):
+    async with Transaction():
+        user = await User.get_by_email(body.email)
+        if user:
+            raise EmailTakenError
+
+    return Response()
 
 
 @router.post("/login", response_model=Response[Token])
