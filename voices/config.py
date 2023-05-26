@@ -7,8 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    app_name = "vizme-backend"
-    tasks_name = "vizme-tasks"
+    app_name = "voices-backend"
+    tasks_name = "voices-tasks"
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

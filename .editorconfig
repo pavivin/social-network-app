@@ -9,7 +9,7 @@ indent_size = 2
 [*.py]
 indent_size = 4
 line_length = 120
-known_first_party = vizme
+known_first_party = voices
 
 [*.tmix]
 insert_final_newline = false

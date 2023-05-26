@@ -29,13 +29,13 @@ pre-commit run -a
 ## Запуск celery
 
 ```bash
-celery -A vizme.broker worker -l info
+celery -A voices.broker worker -l info
 ```
 
 ## Запуск celery-beat
 
 ```bash
-celery -A vizme.broker beat -l info
+celery -A voices.broker beat -l info
 ```
 
 ## Тесты

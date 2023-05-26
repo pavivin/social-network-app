@@ -6,12 +6,12 @@ target-version = ['py311']
 profile = "black"
 
 [tool.poetry]
-name = "vizme-backend"
+name = "voices-backend"
 version = "0.1.0"
 description = ""
 authors = ["pavivin <pavivin@yandex.ru>"]
 readme = "README.md"
-packages = [{include = "vizme_backend"}]
+packages = []
 
 [tool.poetry.dependencies]
 python = "^3.11"
