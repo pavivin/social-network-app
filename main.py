@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from sqladmin import Admin, ModelView
@@ -69,6 +69,20 @@ async def unicorn_api_exception_handler(request: Request, exc: exceptions.ApiExc
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.debug(exc)
     error = exceptions.ValidationError(message=str(exc))
+    return ORJSONResponse(
+        Response(
+            code=error.status_code,
+            message=error.message,
+            body=error.payload,
+            exception_class=error._type(),
+        ).dict()
+    )
+
+
+@app.exception_handler(HTTPException)
+async def validation_http_exception_handler(request: Request, exc: HTTPException):
+    logger.debug(exc)
+    error = exceptions.UnauthorizedError(message=str(exc))
     return ORJSONResponse(
         Response(
             code=error.status_code,

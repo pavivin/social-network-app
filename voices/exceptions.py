@@ -41,6 +41,11 @@ class BadRequestError(ApiException):
     message = "Bad Request"
 
 
+class ObsceneLanguageError(ApiException):
+    status_code = 400
+    message = "Obscene language found"
+
+
 class EmailTakenError(ApiException):
     status_code = 400
     message = "Email already taken"

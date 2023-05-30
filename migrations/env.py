@@ -7,7 +7,6 @@ from voices.db import Base
 config = context.config
 
 from voices.app.auth.models import *  # noqa
-from voices.app.comments.models import *  # noqa
 from voices.app.initiatives.models import *  # noqa
 from voices.app.likes.models import *  # noqa
 
@@ -15,10 +14,6 @@ IGNORE_TABLES = ("spatial_ref_sys",)
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    """
-    Should you include this table or not?
-    """
-
     if type_ == "table" and (name in IGNORE_TABLES or object.info.get("skip_autogenerate", False)):
         return False
 

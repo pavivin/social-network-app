@@ -1,17 +1,17 @@
-import inspect
-import sys
 from asyncio import get_event_loop_policy
 
 import pytest
 import pytest_asyncio
-from factory.base import FactoryMetaClass
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from main import app
+from voices.app.auth.views import TokenData
+from voices.auth.jwt_token import create_access_token
 from voices.db import Base
 from voices.db.base import TestSessionMaker, container, test_engine, test_session_maker
+from voices.tests.factories.user import UserFactory
 
 
 @pytest.fixture(scope="session")
@@ -22,7 +22,7 @@ def event_loop():
     loop.close()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(autouse=True, scope="function")
 async def prepare_db():
     # Clears previous tables in db and creates new ones
     async with test_engine.begin() as conn:
@@ -38,16 +38,14 @@ async def session(prepare_db) -> AsyncSession:
         yield session
 
 
-@pytest.fixture(autouse=True)
-def init_factories(session: AsyncSession) -> None:
-    """Register session in all factories"""
-
-    for _, instance_class in inspect.getmembers(sys.modules["factories"], inspect.isclass):
-        if isinstance(instance_class, FactoryMetaClass):
-            instance_class._meta.sqlalchemy_session = session
-
-
 @pytest.fixture
 def client() -> AsyncClient:
     container.register(sessionmaker, TestSessionMaker)
     yield AsyncClient(app=app, base_url="http://test")
+
+
+@pytest_asyncio.fixture
+async def token() -> AsyncSession:
+    user = await UserFactory.create()
+    access_token = create_access_token(TokenData(sub=str(user.id), email=user.email, role=user.role))
+    return access_token

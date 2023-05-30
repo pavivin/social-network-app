@@ -1,7 +1,8 @@
 import string
 
-from config import settings
 from nltk.stem.snowball import SnowballStemmer
+
+from voices.config import settings
 
 
 class ContentFilter:

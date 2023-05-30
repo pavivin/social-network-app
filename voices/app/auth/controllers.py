@@ -104,7 +104,7 @@ async def get_profile(token: TokenData = Depends(JWTBearer())):
     return Response(payload=ProfileView.from_orm(user))
 
 
-@router.get("/search", response_model=Response[SearchListView])
+@router.get("/friends", response_model=Response[SearchListView])
 async def search_by_pattern(pattern: str = Query(min_length=2)):
     async with Transaction():
         users = await User.search_by_pattern(pattern=pattern)

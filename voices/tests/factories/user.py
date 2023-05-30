@@ -5,6 +5,7 @@ from pytest_factoryboy import register
 
 from voices.app.auth.models import User
 from voices.auth.hash import get_password_hash
+from voices.db.base import sc_session
 
 faker = FakerFactory.create()
 
@@ -19,3 +20,4 @@ class UserFactory(AsyncSQLAlchemyFactory):
 
     class Meta:
         model = User
+        sqlalchemy_session = sc_session
