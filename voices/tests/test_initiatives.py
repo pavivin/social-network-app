@@ -1,11 +1,9 @@
-import asyncio
-from httpx import AsyncClient
 import pytest
 import pytest_asyncio
+from httpx import AsyncClient
+
 from voices.app.initiatives.models import Comment, Initiative
 from voices.config import settings
-from voices.exceptions import ObsceneLanguageError
-
 from voices.tests.factories.initiatives import CommentFactory, InitiativeFactory
 from voices.tests.factories.user import UserFactory
 
