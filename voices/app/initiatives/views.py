@@ -22,7 +22,7 @@ class InitiativeView(BaseModel):
     main_text: str
     likes_count: int
     comments_count: int
-    repost_count: int
+    reposts_count: int
 
 
 class InitiativeListView(BaseModel):
