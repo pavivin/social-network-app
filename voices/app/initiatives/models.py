@@ -40,7 +40,12 @@ class Initiative(BaseDatetimeModel):
         category: Category = None,
         last_id: uuid.UUID | None = None,
     ):
-        query = sa.select(cls).where((cls.city == city) & (cls.deleted_at.is_(None))).limit(settings.DEFAULT_PAGE_SIZE)
+        query = (
+            sa.select(cls)
+            .where((cls.city == city) & (cls.deleted_at.is_(None)))
+            .limit(settings.DEFAULT_PAGE_SIZE)
+            .options(joinedload(cls.user))
+        )
 
         if category:
             query = query.where(cls.category == category)
