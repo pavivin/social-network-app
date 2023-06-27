@@ -32,8 +32,7 @@ class ProfileView(BaseModel):
     first_name: str = None
     last_name: str = None
     image_url: AnyUrl | None = None
-    email: EmailStr
-    role: str
+    email: EmailStr | None = None
 
 
 class UserView(BaseModel):

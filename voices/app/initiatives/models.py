@@ -22,7 +22,7 @@ class Initiative(BaseDatetimeModel):
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
 
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
-    user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")
+    user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default
     city: Mapped[str] = sa.Column(sa.String(length=35))
     images: Mapped[JSONB] = sa.Column(JSONB)
     category: Mapped[str] = sa.Column(sa.String(length=count_max_length(Category)))
@@ -81,7 +81,7 @@ class Comment(BaseDatetimeModel):
     async def get_comments(cls, initiative_id: uuid.UUID, last_id: uuid.UUID | None = None):
         query = (
             sa.select(cls)
-            .where((cls.initiative_id == initiative_id) & (cls.deleted_at.is_(None)))
+            .where((cls.initiative_id == initiative_id) & (cls.deleted_at.is_(None)) & (cls.parent_id.is_(None)))
             .order_by(cls.id.asc())
             .options(
                 joinedload(cls.user, innerjoin=True),
