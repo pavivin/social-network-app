@@ -29,10 +29,10 @@ class UserLogin(BaseModel):
 
 
 class ProfileView(BaseModel):
-    first_name: str = None
-    last_name: str = None
+    first_name: str | None = None
+    last_name: str | None = None
     image_url: AnyUrl | None = None
-    email: EmailStr | None = None
+    city: str | None = None
 
 
 class UserView(BaseModel):

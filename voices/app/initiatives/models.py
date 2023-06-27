@@ -16,10 +16,13 @@ from voices.utils import count_max_length
 class Initiative(BaseDatetimeModel):
     __tablename__ = "initiatives"
 
+    # TODO: to lowercase
     class Category(StrEnum):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
+        SURVEYS = "SURVEYS"
+        PROJECTS = "PROJECTS"
 
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
     user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default

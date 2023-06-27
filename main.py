@@ -37,9 +37,10 @@ app.include_router(auth.router, tags=["auth"], prefix="/api")
 app.include_router(initiatives.router, tags=["auth"], prefix="/api")
 
 
+# TODO: add sentry
 @app.exception_handler(Exception)
 async def uvicorn_base_exception_handler(request: Request, exc: Exception):
-    logger.debug(exc)
+    logger.error(exc)
     error = exceptions.ServerError(str(exc))
     return ORJSONResponse(
         Response(
@@ -53,7 +54,7 @@ async def uvicorn_base_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(exceptions.ApiException)
 async def unicorn_api_exception_handler(request: Request, exc: exceptions.ApiException):
-    logger.debug(str(exc))  # TODO: добавить асинхронный логер
+    logger.debug(str(exc))
 
     return ORJSONResponse(
         Response(
@@ -81,7 +82,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(HTTPException)
 async def validation_http_exception_handler(request: Request, exc: HTTPException):
-    logger.debug(exc)
+    logger.error(exc)
     error = exceptions.UnauthorizedError(message=str(exc))
     return ORJSONResponse(
         Response(

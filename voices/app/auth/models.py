@@ -22,6 +22,7 @@ class User(BaseDatetimeModel):
     role: Mapped[str] = sa.Column(sa.String(length=count_max_length(UserRole)), nullable=False, default=UserRole.USER)
     image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
+    city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
 
     @staticmethod
     async def get_by_email(email: str):

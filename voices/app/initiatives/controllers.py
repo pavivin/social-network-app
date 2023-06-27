@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends
 
+from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.initiatives.models import Comment, Initiative
 from voices.app.initiatives.views import (
@@ -21,8 +22,14 @@ router = APIRouter()
 
 
 @router.get("/initiatives", response_model=Response[InitiativeListView])
-async def get_feed(category: Initiative.Category | None = None, last_id: uuid.UUID = None):
+async def get_feed(
+    category: Initiative.Category | None = None,
+    role: User.UserRole | None = None,
+    last_id: uuid.UUID = None,
+    is_active: bool = True,
+):
     async with Transaction():
+        # TODO: city
         feed = await Initiative.get_feed(city="test", category=category, last_id=last_id)
 
     return Response(
