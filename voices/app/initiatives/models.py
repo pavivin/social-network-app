@@ -23,8 +23,8 @@ class Initiative(BaseDatetimeModel):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
-        SURVEYS = "SURVEYS"
-        PROJECTS = "PROJECTS"
+        SURVEY = "SURVEY"
+        PROJECT = "PROJECT"
 
     class Status(StrEnum):
         ACTIVE = "active"
