@@ -39,7 +39,8 @@ def decode_token(token: str) -> TokenData:
 
 
 class JWTBearer(HTTPBearer):
-    def __init__(self, auto_error: bool = True):
+    def __init__(self, auto_error: bool = True, required: bool = True):
+        self.required = required
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
@@ -48,5 +49,6 @@ class JWTBearer(HTTPBearer):
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
             return decode_token(credentials.credentials)
-        else:
+        elif self.required:
             raise HTTPException(status_code=403, detail="Invalid authorization code.")
+        return None

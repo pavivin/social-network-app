@@ -15,7 +15,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     sub: str
     email: EmailStr
-    role: User.UserRole
+    role: User.Role
     exp: datetime | None
 
 

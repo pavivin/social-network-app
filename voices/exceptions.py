@@ -55,6 +55,16 @@ class ValidationError(ApiException):
     status_code = 400
 
 
+class AlreadyLikedError(ApiException):
+    message = "Post already liked"
+    status_code = 400
+
+
+class AlreadyUnlikedError(ApiException):
+    message = "Post already unliked"
+    status_code = 400
+
+
 class UserNotFoundError(ApiException):
     status_code = 400
     message = "User not found"

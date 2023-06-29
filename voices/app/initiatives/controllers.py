@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
-from voices.app.initiatives.models import Comment, Initiative
+from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
 from voices.app.initiatives.views import (
     CommentListView,
     CommentReplyView,
@@ -24,13 +24,21 @@ router = APIRouter()
 @router.get("/initiatives", response_model=Response[InitiativeListView])
 async def get_feed(
     category: Initiative.Category | None = None,
-    role: User.UserRole | None = None,
-    last_id: uuid.UUID = None,
-    is_active: bool = True,
+    role: User.Role | None = None,
+    last_id: uuid.UUID | None = None,
+    status: Initiative.Status | None = None,
+    city: str = "test",
+    token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     async with Transaction():
         # TODO: city
-        feed = await Initiative.get_feed(city="test", category=category, last_id=last_id)
+        feed = await Initiative.get_feed(
+            city=city,
+            category=category,
+            last_id=last_id,
+            status=status,
+            role=role,
+        )
 
     return Response(
         payload=InitiativeListView(
@@ -69,5 +77,26 @@ async def post_comment(
         await Comment.post_comment(
             main_text=body.main_text, initiative_id=initiative_id, reply_id=reply_id, user_id=token.sub
         )
+        await Initiative.increment_comments_count(initiative_id=initiative_id)
+
+    return Response()
+
+
+@router.post("/initiatives/{initiative_id}/like", response_model=Response[CommentReplyView])
+async def post_like(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Initiative.get(initiative_id)
+        await InitiativeLike.post_like(initiative_id=initiative_id, user_id=token.sub)
+        await Initiative.update_likes_count(initiative_id=initiative_id, count=1)
+
+    return Response()
+
+
+@router.post("/initiatives/{initiative_id}/unlike", response_model=Response[CommentReplyView])
+async def post_unlike(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Initiative.get(initiative_id)
+        await InitiativeLike.delete_like(initiative_id=initiative_id, user_id=token.sub)
+        await Initiative.update_likes_count(initiative_id=initiative_id, count=-1)
 
     return Response()
