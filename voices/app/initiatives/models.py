@@ -25,6 +25,7 @@ class Initiative(BaseDatetimeModel):
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
         SURVEY = "SURVEY"
         PROJECT = "PROJECT"
+        BUILDING = "BUILDING"
 
     class Status(StrEnum):
         ACTIVE = "active"
