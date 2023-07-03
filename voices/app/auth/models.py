@@ -19,7 +19,7 @@ class User(BaseDatetimeModel):
     first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     email: Mapped[str] = sa.Column(sa.String(length=254), unique=True, index=True, nullable=False)
-    role: Mapped[str] = sa.Column(sa.String(length=count_max_length(Role)), nullable=False, default=Role.CITIZEN)
+    role: Mapped[str] = sa.Column(sa.String(length=count_max_length(Role)), nullable=False, server_default=Role.CITIZEN)
     image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
