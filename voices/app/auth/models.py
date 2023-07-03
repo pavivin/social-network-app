@@ -37,8 +37,8 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
-    async def insert_data(email: str, hashed_password: str) -> uuid.UUID:
-        query = sa.insert(User).values(email=email, hashed_password=hashed_password).returning(User.id)
+    async def insert_data(email: str, hashed_password: str) -> "User":
+        query = sa.insert(User).values(email=email, hashed_password=hashed_password).returning(User)
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
