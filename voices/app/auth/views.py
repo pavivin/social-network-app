@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import AnyUrl, EmailStr
 
-from voices.protocol import BaseModel
+from voices.app.core.protocol import BaseModel
 
 from .models import User
 

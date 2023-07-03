@@ -8,9 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
 
 from voices.app.auth.models import User
+from voices.app.core.exceptions import AlreadyLikedError, AlreadyUnlikedError
 from voices.config import settings
 from voices.db.connection import db_session
-from voices.exceptions import AlreadyLikedError, AlreadyUnlikedError
 from voices.models import BaseDatetimeModel, BaseModel
 from voices.utils import count_max_length
 
@@ -53,6 +53,10 @@ class Initiative(BaseDatetimeModel):
     async def increment_comments_count(cls, initiative_id: str):
         query = sa.update(cls).values(comments_count=cls.comments_count + 1).where(initiative_id == initiative_id)
         await db_session.get().execute(query)
+
+    @classmethod
+    async def create(cls):
+        ...
 
     @classmethod
     async def get_feed(

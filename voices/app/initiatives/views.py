@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from voices.protocol import BaseModel, GeometryPoint, PaginationView
+from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 
 from .models import Initiative
 

@@ -1,9 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
+from voices.app.core.exceptions import ObsceneLanguageError
+from voices.app.core.protocol import PaginationView, Response
+from voices.app.core.responses import BadRequestResponse, NotFoundResponse
 from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
 from voices.app.initiatives.views import (
     CommentListView,
@@ -15,8 +18,6 @@ from voices.app.initiatives.views import (
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
-from voices.exceptions import ObsceneLanguageError
-from voices.protocol import PaginationView, Response
 
 router = APIRouter()
 
@@ -48,7 +49,35 @@ async def get_feed(
     )
 
 
-@router.get("/initiatives/{initiative_id}/comments", response_model=Response[CommentListView])
+@router.get("/initiatives", response_model=Response[InitiativeListView])
+async def create_initiative(
+    _: TokenData | None = Depends(JWTBearer()),
+):
+    async with Transaction():
+        # TODO: city
+        await Initiative.create()
+
+    return Response()
+
+
+@router.get(
+    "/initiatives/{initiative_id}/comments",
+    response_model=Response[CommentListView],
+    responses={
+        status.HTTP_200_OK: {
+            "model": Response[CommentListView],
+            "description": "Ok Response",
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "model": BadRequestResponse,
+            "description": "Atributes are not correct or comment text is not appropriate",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": NotFoundResponse,
+            "description": "Initiative with id not found",
+        },
+    },
+)
 async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID = None):
     async with Transaction():
         await Initiative.get(initiative_id)  # raises 404

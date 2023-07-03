@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from voices.protocol import Response
+from voices.app.core.protocol import Response
 
 router = APIRouter()
 

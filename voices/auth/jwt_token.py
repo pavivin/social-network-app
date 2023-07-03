@@ -7,8 +7,8 @@ from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError
 
 from voices.app.auth.views import TokenData
+from voices.app.core.exceptions import UnauthorizedError
 from voices.config import settings
-from voices.exceptions import UnauthorizedError
 
 
 def create_access_token(data: TokenData) -> str:

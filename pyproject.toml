@@ -40,6 +40,7 @@ geoalchemy2 = "^0.13.2"
 punq = "^0.6.2"
 shapely = "^2.0.1"
 nltk = "^3.8.1"
+aiofiles = "^23.1.0"
 
 
 [build-system]

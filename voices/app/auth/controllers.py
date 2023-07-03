@@ -1,5 +1,11 @@
 from fastapi import APIRouter, Depends, Query
 
+from voices.app.core.exceptions import (
+    EmailTakenError,
+    PasswordMatchError,
+    UserNotFoundError,
+)
+from voices.app.core.protocol import Response
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
     JWTBearer,
@@ -8,8 +14,6 @@ from voices.auth.jwt_token import (
     decode_token,
 )
 from voices.db.connection import Transaction
-from voices.exceptions import EmailTakenError, PasswordMatchError, UserNotFoundError
-from voices.protocol import Response
 
 from .models import User
 from .views import (
