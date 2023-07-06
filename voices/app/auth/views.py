@@ -36,8 +36,8 @@ class ProfileView(BaseModel):
 
 
 class UserView(BaseModel):
-    first_name: str = None
-    last_name: str = None
+    first_name: str = "unknown"
+    last_name: str = "user"
     email: EmailStr
 
 
