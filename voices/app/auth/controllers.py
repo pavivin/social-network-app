@@ -82,8 +82,8 @@ async def post_refresh_token(body: Token):
     if not user:
         raise UserNotFoundError
 
-    access_token = create_access_token(TokenData(sub=user.id, email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(sub=user.id, email=user.email, role=user.role))
+    access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),
