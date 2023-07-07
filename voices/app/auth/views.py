@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from pydantic import AnyUrl, EmailStr
@@ -13,7 +14,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    sub: str
+    sub: str | uuid.UUID
     email: EmailStr
     role: User.Role
     exp: datetime | None
