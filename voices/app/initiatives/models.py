@@ -111,22 +111,26 @@ class Comment(BaseDatetimeModel):
         )
         return await db_session.get().execute(query)
 
-    @classmethod
-    async def get_comments(cls, initiative_id: uuid.UUID, last_id: uuid.UUID | None = None):
+    @staticmethod
+    async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID | None = None):
         query = (
-            sa.select(cls)
-            .where((cls.initiative_id == initiative_id) & (cls.deleted_at.is_(None)) & (cls.parent_id.is_(None)))
-            .order_by(cls.id.asc())
+            sa.select(Comment)
+            .where(
+                (Comment.initiative_id == initiative_id)
+                & (Comment.deleted_at.is_(None))
+                & (Comment.parent_id.is_(None))
+            )
+            .order_by(Comment.id.asc())
             .options(
-                joinedload(cls.user, innerjoin=True),
-                joinedload(cls.initiative),
-                joinedload(cls.replies),
+                joinedload(Comment.user, innerjoin=True),
+                joinedload(Comment.initiative),
+                joinedload(Comment.replies).joinedload(Comment.user),
             )
             .limit(settings.DEFAULT_PAGE_SIZE)
         )
 
         if last_id:
-            query = query.where(cls.id > last_id)
+            query = query.where(Comment.id > last_id)
 
         result = await db_session.get().execute(query)
         return result.unique().scalars().all()
