@@ -12,16 +12,17 @@ from voices.utils import count_max_length
 class User(BaseDatetimeModel):
     __tablename__ = "users"
 
-    class UserRole(StrEnum):
-        USER = "USER"
-        ADMIN = "ADMIN"
+    class Role(StrEnum):
+        CITIZEN = "citizen"
+        GOVERNMENT = "government"
 
     first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     email: Mapped[str] = sa.Column(sa.String(length=254), unique=True, index=True, nullable=False)
-    role: Mapped[str] = sa.Column(sa.String(length=count_max_length(UserRole)), nullable=False, default=UserRole.USER)
+    role: Mapped[str] = sa.Column(sa.String(length=count_max_length(Role)), nullable=False, server_default=Role.CITIZEN)
     image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
+    city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
 
     @staticmethod
     async def get_by_email(email: str):
@@ -36,8 +37,8 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
-    async def insert_data(email: str, hashed_password: str) -> uuid.UUID:
-        query = sa.insert(User).values(email=email, hashed_password=hashed_password).returning(User.id)
+    async def insert_data(email: str, hashed_password: str) -> "User":
+        query = sa.insert(User).values(email=email, hashed_password=hashed_password).returning(User)
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod

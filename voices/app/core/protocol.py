@@ -6,6 +6,8 @@ from pydantic import BaseModel as PydanticModel
 from pydantic import Field
 from pydantic.generics import GenericModel as PydanticGenericModel
 
+from voices.config import settings
+
 DataT = TypeVar("DataT")
 
 
@@ -40,6 +42,11 @@ class Response(PydanticGenericModel, Generic[DataT]):
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
+
+
+class PaginationView(BaseModel):
+    total: int
+    limit: int = settings.DEFAULT_PAGE_SIZE
 
 
 class GeometryPoint(dict):

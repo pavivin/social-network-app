@@ -7,11 +7,12 @@ from sqladmin import Admin, ModelView
 import voices.app.auth.controllers as auth
 import voices.app.healthcheck.controllers as healthcheck
 import voices.app.initiatives.controllers as initiatives
-from voices import exceptions
+import voices.app.storage.controllers as storage
 from voices.app.auth.models import User
+from voices.app.core import exceptions
+from voices.app.core.protocol import Response
 from voices.db.base import engine
 from voices.logger import logger
-from voices.protocol import Response
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 
@@ -34,12 +35,14 @@ admin.add_view(UserAdmin)
 
 app.include_router(healthcheck.router, tags=["healthcheck"])
 app.include_router(auth.router, tags=["auth"], prefix="/api")
-app.include_router(initiatives.router, tags=["auth"], prefix="/api")
+app.include_router(initiatives.router, tags=["initiatives"], prefix="/api")
+app.include_router(storage.router, tags=["storage"], prefix="/api")
 
 
+# TODO: add sentry
 @app.exception_handler(Exception)
 async def uvicorn_base_exception_handler(request: Request, exc: Exception):
-    logger.debug(exc)
+    logger.error(exc)
     error = exceptions.ServerError(str(exc))
     return ORJSONResponse(
         Response(
@@ -53,7 +56,7 @@ async def uvicorn_base_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(exceptions.ApiException)
 async def unicorn_api_exception_handler(request: Request, exc: exceptions.ApiException):
-    logger.debug(str(exc))  # TODO: добавить асинхронный логер
+    logger.debug(str(exc))
 
     return ORJSONResponse(
         Response(
@@ -81,7 +84,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(HTTPException)
 async def validation_http_exception_handler(request: Request, exc: HTTPException):
-    logger.debug(exc)
+    logger.error(exc)
     error = exceptions.UnauthorizedError(message=str(exc))
     return ORJSONResponse(
         Response(

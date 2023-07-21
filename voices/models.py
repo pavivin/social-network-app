@@ -6,9 +6,9 @@ from sqlalchemy import Column, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
+from voices.app.core.exceptions import ObjectNotFoundError
 from voices.db.base import Base
 from voices.db.connection import db_session
-from voices.exceptions import ObjectNotFoundError
 
 
 class BaseModel(Base):

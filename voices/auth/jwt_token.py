@@ -7,8 +7,8 @@ from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError
 
 from voices.app.auth.views import TokenData
+from voices.app.core.exceptions import UnauthorizedError
 from voices.config import settings
-from voices.exceptions import UnauthorizedError
 
 
 def create_access_token(data: TokenData) -> str:
@@ -39,14 +39,16 @@ def decode_token(token: str) -> TokenData:
 
 
 class JWTBearer(HTTPBearer):
-    def __init__(self, auto_error: bool = True):
+    def __init__(self, auto_error: bool = True, required: bool = True):
+        self.required = required
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
+        if not self.required:
+            return None
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
             return decode_token(credentials.credentials)
-        else:
-            raise HTTPException(status_code=403, detail="Invalid authorization code.")
+        raise HTTPException(status_code=403, detail="Invalid authorization code.")

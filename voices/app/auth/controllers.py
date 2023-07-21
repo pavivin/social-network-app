@@ -1,5 +1,11 @@
 from fastapi import APIRouter, Depends, Query
 
+from voices.app.core.exceptions import (
+    EmailTakenError,
+    PasswordMatchError,
+    UserNotFoundError,
+)
+from voices.app.core.protocol import Response
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
     JWTBearer,
@@ -8,8 +14,6 @@ from voices.auth.jwt_token import (
     decode_token,
 )
 from voices.db.connection import Transaction
-from voices.exceptions import EmailTakenError, PasswordMatchError, UserNotFoundError
-from voices.protocol import Response
 
 from .models import User
 from .views import (
@@ -31,14 +35,14 @@ async def register_user(body: UserLogin):
         if user:
             raise EmailTakenError
 
-        user_id = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
+        user = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
 
-    access_token = create_access_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
-    refresh_token = create_refresh_token(TokenData(sub=user_id.hex, email=body.email, role="USER"))
+        access_token = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
+        refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
 
-    return Response(
-        payload=Token(access_token=access_token, refresh_token=refresh_token),
-    )
+        return Response(
+            payload=Token(access_token=access_token, refresh_token=refresh_token),
+        )
 
 
 @router.post("/check-email", response_model=Response)
@@ -78,8 +82,8 @@ async def post_refresh_token(body: Token):
     if not user:
         raise UserNotFoundError
 
-    access_token = create_access_token(TokenData(sub=user.id, email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(sub=user.id, email=user.email, role=user.role))
+    access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     return Response(
         payload=Token(access_token=access_token, refresh_token=refresh_token),

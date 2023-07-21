@@ -1,18 +1,19 @@
 import uuid
 from datetime import datetime
 
-from voices.protocol import BaseModel, GeometryPoint
+from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 
 from .models import Initiative
 
 
 class UserView(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: str = "unknown"
+    last_name: str = "user"
     image_url: str | None
 
 
 class InitiativeView(BaseModel):
+    id: str | uuid.UUID
     user: UserView
     city: str
     images: list | dict | None
@@ -27,6 +28,7 @@ class InitiativeView(BaseModel):
 
 class InitiativeListView(BaseModel):
     feed: list[InitiativeView]
+    pagination: PaginationView
 
 
 class CommentView(BaseModel):
@@ -42,6 +44,7 @@ class CommentReplyView(CommentView):
 
 class CommentListView(BaseModel):
     comments: list[CommentReplyView]
+    pagination: PaginationView
 
 
 class CommentRequestView(BaseModel):
