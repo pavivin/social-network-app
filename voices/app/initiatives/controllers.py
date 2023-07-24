@@ -12,6 +12,7 @@ from voices.app.initiatives.views import (
     CommentListView,
     CommentReplyView,
     CommentRequestView,
+    CreateInitiativeVew,
     InitiativeListView,
     InitiativeView,
 )
@@ -49,13 +50,22 @@ async def get_feed(
     )
 
 
-@router.get("/initiatives", response_model=Response[InitiativeListView])
+@router.post("/initiatives", response_model=Response)
 async def create_initiative(
-    _: TokenData | None = Depends(JWTBearer()),
+    body: CreateInitiativeVew,
+    token: TokenData = Depends(JWTBearer()),
 ):
     async with Transaction():
-        # TODO: city
-        await Initiative.create()
+        user = await User.get(token.sub)
+        await Initiative.create(
+            city=user.city,
+            user_id=user.id,
+            images=body.images,
+            category=body.category,
+            location=body.location,
+            title=body.title,
+            main_text=body.main_text,
+        )
 
     return Response()
 

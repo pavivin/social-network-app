@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, joinedload, relationship
 
 from voices.app.auth.models import User
 from voices.app.core.exceptions import AlreadyLikedError, AlreadyUnlikedError
+from voices.app.core.protocol import GeometryPoint
 from voices.config import settings
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel, BaseModel
@@ -19,6 +20,11 @@ class Initiative(BaseDatetimeModel):
     __tablename__ = "initiatives"
 
     # TODO: to lowercase
+    class CitizenCategory(StrEnum):
+        PROBLEM = "PROBLEM"
+        EVENT = "EVENT"
+        DECIDE_TOGETHER = "DECIDE_TOGETHER"
+
     class Category(StrEnum):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
@@ -55,8 +61,17 @@ class Initiative(BaseDatetimeModel):
         await db_session.get().execute(query)
 
     @classmethod
-    async def create(cls):
-        ...
+    async def create(cls, city, user_id, images, title, main_text, category, location: GeometryPoint):
+        query = sa.insert(Initiative).values(
+            city=city,
+            user_id=user_id,
+            images=images,
+            title=title,
+            main_text=main_text,
+            category=category.value,
+            location=GeometryPoint.to_str(location),
+        )
+        await db_session.get().execute(query)
 
     @classmethod
     async def get_feed(

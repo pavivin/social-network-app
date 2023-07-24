@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
 
+from pydantic import Field
+
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 
 from .models import Initiative
@@ -48,4 +50,12 @@ class CommentListView(BaseModel):
 
 
 class CommentRequestView(BaseModel):
+    main_text: str
+
+
+class CreateInitiativeVew(BaseModel):
+    images: list[str] | None
+    category: Initiative.CitizenCategory
+    location: GeometryPoint | None = Field(examples=[{"lat": 57.624804, "lon": 39.885072}])
+    title: str
     main_text: str

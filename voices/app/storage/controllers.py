@@ -27,7 +27,6 @@ router = APIRouter()
 # TODO: to webp
 @router.post("/storage", response_model=Response)
 async def add_file(upload_file: UploadFile):
-
     file_ext = upload_file.filename.split(".")[-1].lower()
 
     if file_ext not in settings.ALLOWED_UPLOAD_TYPES:
