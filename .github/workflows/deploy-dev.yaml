@@ -1,9 +1,7 @@
-name: Workflow для dev ветки
+name: Workflow для развертывания dev-окружения
 
 on:
   push:
-    branches: [ "dev" ]
-  pull_request:
     branches: [ "dev" ]
 jobs:
   pre-commit:
