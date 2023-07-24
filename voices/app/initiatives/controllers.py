@@ -58,7 +58,7 @@ async def create_initiative(
     async with Transaction():
         user = await User.get(token.sub)
         await Initiative.create(
-            city=user.city,
+            city="test",
             user_id=user.id,
             images=body.images,
             category=body.category,
