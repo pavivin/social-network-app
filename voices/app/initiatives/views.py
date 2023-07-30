@@ -26,6 +26,7 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
+    survey: dict | None = None
 
 
 class InitiativeListView(BaseModel):

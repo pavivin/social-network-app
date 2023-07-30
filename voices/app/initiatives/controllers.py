@@ -19,6 +19,7 @@ from voices.app.initiatives.views import (
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
+from voices.mongo.models import Survey
 
 router = APIRouter()
 
@@ -42,9 +43,17 @@ async def get_feed(
             role=role,
         )
 
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        if initiative.category == Initiative.Category.SURVEY:
+            view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
+
     return Response(
         payload=InitiativeListView(
-            feed=[InitiativeView.from_orm(initiative) for initiative in feed],
+            feed=response,
             pagination=PaginationView(total=len(feed)),
         )
     )
