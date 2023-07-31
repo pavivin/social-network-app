@@ -11,7 +11,6 @@ from .models import Initiative
 
 class SurveyBlockView(BaseModel):
     question: str
-    answer_user_id: uuid.UUID | None = None
     survey_type: SurveyType
     value: str | None | list[SurveyChoose] = None
 
@@ -30,7 +29,7 @@ class SurveyCreate(BaseModel):
 class SurveyView(BaseModel):
     name: str
     image_url: str
-    blocks: list[SurveyBlockCreate]
+    blocks: list[SurveyBlockView]
 
 
 class UserView(BaseModel):
