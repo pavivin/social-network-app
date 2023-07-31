@@ -1,3 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 
-mongo_client = AsyncIOMotorClient("mongodb://localhost:27017/voices")
+from voices.config import settings
+
+mongo_client = AsyncIOMotorClient(settings.MONGO_URL)

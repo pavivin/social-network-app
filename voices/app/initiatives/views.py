@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import Field
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
+from voices.mongo.models import Survey
 
 from .models import Initiative
 
@@ -26,7 +27,7 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
-    survey: dict | None = None
+    survey: Survey | None = None
 
 
 class InitiativeListView(BaseModel):
