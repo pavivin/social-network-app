@@ -8,7 +8,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
 
 from voices.app.auth.models import User
-from voices.app.core.exceptions import AlreadyLikedError, AlreadyUnlikedError
+from voices.app.core.exceptions import (
+    AlreadyLikedError,
+    AlreadyUnlikedError,
+    NotFoundError,
+)
 from voices.app.core.protocol import GeometryPoint
 from voices.config import settings
 from voices.db.connection import db_session
@@ -80,6 +84,17 @@ class Initiative(BaseDatetimeModel):
         return result.scalars().first()
 
     @classmethod
+    async def select(cls, initiative_id: str):
+        query = (
+            sa.select(cls).where((cls.deleted_at.is_(None) & (cls.id == initiative_id))).options(joinedload(cls.user))
+        )
+        result = await db_session.get().execute(query)
+        initiative = result.scalars().first()
+        if not initiative:
+            raise NotFoundError()
+        return initiative
+
+    @classmethod
     async def get_feed(
         cls,
         city: str,
@@ -107,6 +122,37 @@ class Initiative(BaseDatetimeModel):
 
         if role:
             query = query.where(cls.user.has(role=role))
+
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @classmethod
+    async def get_favorites(cls, city: str, user_id: str, last_id: str):
+        query = (
+            sa.select(Initiative)
+            .join(InitiativeLike, cls.id == InitiativeLike.initiative_id)
+            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (InitiativeLike.user_id == user_id)))
+            .limit(settings.DEFAULT_PAGE_SIZE)
+            .options(joinedload(Initiative.user))
+        )
+
+        if last_id:
+            query = query.where(cls.id > last_id)
+
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @classmethod
+    async def get_my(cls, city: str, user_id: str, last_id: str):
+        query = (
+            sa.select(Initiative)
+            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id)))
+            .limit(settings.DEFAULT_PAGE_SIZE)
+            .options(joinedload(Initiative.user))
+        )
+
+        if last_id:
+            query = query.where(cls.id > last_id)
 
         result = await db_session.get().execute(query)
         return result.scalars().all()

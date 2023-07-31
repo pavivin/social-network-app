@@ -6,7 +6,7 @@ from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import ObsceneLanguageError
 from voices.app.core.protocol import PaginationView, Response
-from voices.app.core.responses import BadRequestResponse, NotFoundResponse
+from voices.app.core.responses import NotFoundResponse
 from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
 from voices.app.initiatives.views import (
     CommentListView,
@@ -59,6 +59,54 @@ async def get_feed(
     )
 
 
+@router.get("/initiatives/favorites", response_model=Response[InitiativeListView])
+async def get_favorites(
+    last_id: uuid.UUID | None = None,
+    token: TokenData | None = Depends(JWTBearer()),
+):
+    async with Transaction():
+        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        if initiative.category == Initiative.Category.SURVEY:
+            view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=response,
+            pagination=PaginationView(total=len(feed)),
+        )
+    )
+
+
+@router.get("/initiatives/my", response_model=Response[InitiativeListView])
+async def get_my(
+    last_id: uuid.UUID | None = None,
+    token: TokenData | None = Depends(JWTBearer()),
+):
+    async with Transaction():
+        feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        if initiative.category == Initiative.Category.SURVEY:
+            view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=response,
+            pagination=PaginationView(total=len(feed)),
+        )
+    )
+
+
 @router.post("/initiatives", response_model=Response)
 async def create_initiative(
     body: CreateInitiativeVew,
@@ -88,16 +136,23 @@ async def create_initiative(
 
 
 @router.get(
+    "/initiatives/{initiative_id}",
+    response_model=Response[InitiativeView],
+)
+async def get_initiative(initiative_id: uuid.UUID):
+    async with Transaction():
+        initiative = await Initiative.select(initiative_id)
+
+    return Response(payload=InitiativeView.from_orm(initiative))
+
+
+@router.get(
     "/initiatives/{initiative_id}/comments",
     response_model=Response[CommentListView],
     responses={
         status.HTTP_200_OK: {
             "model": Response[CommentListView],
             "description": "Ok Response",
-        },
-        status.HTTP_400_BAD_REQUEST: {
-            "model": BadRequestResponse,
-            "description": "Atributes are not correct or comment text is not appropriate",
         },
         status.HTTP_404_NOT_FOUND: {
             "model": NotFoundResponse,
