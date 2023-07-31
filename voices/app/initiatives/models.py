@@ -24,6 +24,7 @@ class Initiative(BaseDatetimeModel):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
+        SURVEY = "SURVEY"
 
     class Category(StrEnum):
         PROBLEM = "PROBLEM"
@@ -62,16 +63,21 @@ class Initiative(BaseDatetimeModel):
 
     @classmethod
     async def create(cls, city, user_id, images, title, main_text, category, location: GeometryPoint):
-        query = sa.insert(Initiative).values(
-            city=city,
-            user_id=user_id,
-            images=images,
-            title=title,
-            main_text=main_text,
-            category=category.value,
-            location=GeometryPoint.to_str(location),
+        query = (
+            sa.insert(Initiative)
+            .values(
+                city=city,
+                user_id=user_id,
+                images=images,
+                title=title,
+                main_text=main_text,
+                category=category.value,
+                location=GeometryPoint.to_str(location),
+            )
+            .returning(Initiative.id)
         )
-        await db_session.get().execute(query)
+        result = await db_session.get().execute(query)
+        return result.scalars().first()
 
     @classmethod
     async def get_feed(

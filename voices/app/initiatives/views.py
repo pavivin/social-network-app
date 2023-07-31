@@ -4,9 +4,33 @@ from datetime import datetime
 from pydantic import Field
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
-from voices.mongo.models import Survey
+from voices.mongo.models import SurveyChoose, SurveyType
 
 from .models import Initiative
+
+
+class SurveyBlockView(BaseModel):
+    question: str
+    answer_user_id: uuid.UUID | None = None
+    survey_type: SurveyType
+    value: str | None | list[SurveyChoose] = None
+
+
+class SurveyBlockCreate(BaseModel):
+    question: str
+    survey_type: SurveyType
+
+
+class SurveyCreate(BaseModel):
+    name: str
+    image_url: str
+    blocks: list[SurveyBlockCreate]
+
+
+class SurveyView(BaseModel):
+    name: str
+    image_url: str
+    blocks: list[SurveyBlockCreate]
 
 
 class UserView(BaseModel):
@@ -27,7 +51,7 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
-    survey: Survey | None = None
+    survey: SurveyView | None = None
 
 
 class InitiativeListView(BaseModel):
@@ -61,3 +85,4 @@ class CreateInitiativeVew(BaseModel):
     location: GeometryPoint | None = Field(examples=[{"lat": 57.624804, "lon": 39.885072}])
     title: str
     main_text: str
+    survey: SurveyCreate | None

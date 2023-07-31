@@ -66,7 +66,7 @@ async def create_initiative(
 ):
     async with Transaction():
         user = await User.get(token.sub)
-        await Initiative.create(
+        initiative_id = await Initiative.create(
             city="test",
             user_id=user.id,
             images=body.images,
@@ -75,6 +75,14 @@ async def create_initiative(
             title=body.title,
             main_text=body.main_text,
         )
+        if body.survey:
+            survey = Survey(
+                id=initiative_id,
+                name=body.survey.name,
+                image_url=body.survey.image_url,
+                blocks=body.survey.blocks,
+            )
+            await survey.create()
 
     return Response()
 
