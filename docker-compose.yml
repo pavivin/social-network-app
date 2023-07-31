@@ -53,6 +53,7 @@ services:
       - "27017"
     networks:
       - rocketchat
+      - voices-dev
   rocketchat:
     image: rocketchat/rocket.chat:6.1.7
     environment:
