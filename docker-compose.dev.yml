@@ -1,0 +1,80 @@
+version: '3.7'
+services:
+  db:
+    image: bitnami/postgresql:15.1.0
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/bitnami/postgresql
+    env_file:
+      - .env
+    environment:
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_REPLICATION_MODE=master
+    networks:
+      - voices-dev
+  web:
+    image: startupcifra/voices-backend:${IMAGE_TAG}
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    environment:
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_HOST=db
+        - POSTGRES_PORT=5432
+        - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+        - ROCKETCHAT_URL=http://rocketchat:3000
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - voices-dev
+    command:
+      - python
+      - main.py
+  mongodb:
+    image: bitnami/mongodb:5.0
+    volumes:
+      - mongodb_data:/bitnami/mongodb
+    environment:
+      - MONGODB_ENABLE_JOURNAL=true
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_NAME=rs0
+      - MONGODB_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=7017
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "27017"
+    networks:
+      - rocketchat
+      - voices-dev
+  rocketchat:
+    image: rocketchat/rocket.chat:6.1.7
+    environment:
+      MONGO_URL: "mongodb://mongodb:27017/rocketchat?replicaSet=rs0"
+      MONGO_OPLOG_URL: "mongodb://mongodb:27017/local?replicaSet=rs0"
+      PORT: 3000
+      DEPLOY_METHOD: docker
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    networks:
+      - rocketchat
+      - voices-dev
+volumes:
+  postgres_data:
+  mongodb_data:
+networks:
+  voices-dev:
+    external: true
+  rocketchat:
+    external: true
