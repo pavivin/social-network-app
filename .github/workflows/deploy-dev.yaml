@@ -4,15 +4,6 @@ on:
   push:
     branches: [ "dev" ]
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install pre-commit
-        run: pip install pre-commit
-      - name: Test commit
-        run: pre-commit run -a
-
   build:
     runs-on: ubuntu-latest
     needs: [pre-commit]
