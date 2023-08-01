@@ -33,6 +33,7 @@ async def get_feed(
     city: str = "test",
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
+    user_id = token.sub if token else None
     async with Transaction():
         # TODO: city
         feed = await Initiative.get_feed(
@@ -42,10 +43,13 @@ async def get_feed(
             status=status,
             role=role,
         )
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
 
     response = []
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
+        view.is_liked = initiative.id in set_liked
         if initiative.category == Initiative.Category.SURVEY:
             view.survey = await Survey.get(initiative.id)
 
@@ -70,6 +74,7 @@ async def get_favorites(
     response = []
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
+        view.is_liked = True
         if initiative.category == Initiative.Category.SURVEY:
             view.survey = await Survey.get(initiative.id)
 
@@ -88,12 +93,16 @@ async def get_my(
     last_id: uuid.UUID | None = None,
     token: TokenData | None = Depends(JWTBearer()),
 ):
+    user_id = token.sub if token else None
     async with Transaction():
         feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
 
     response = []
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
+        view.is_liked = initiative.id in set_liked
         if initiative.category == Initiative.Category.SURVEY:
             view.survey = await Survey.get(initiative.id)
 

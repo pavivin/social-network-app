@@ -215,6 +215,12 @@ class InitiativeLike(BaseModel):
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
     @classmethod
+    async def get_liked(cls, initiative_list: list[str], user_id: str):
+        query = sa.select(cls.initiative_id).where((cls.initiative_id.in_(initiative_list)) & (cls.user_id == user_id))
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @classmethod
     async def is_like_exists(cls, initiative_id: uuid.UUID, user_id: uuid.UUID):
         query = sa.select(cls.id).where((initiative_id == initiative_id) & (user_id == user_id))
         result = await db_session.get().execute(query)

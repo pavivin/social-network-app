@@ -25,10 +25,10 @@ def create_refresh_token(data: TokenData) -> str:
     return encoded_jwt
 
 
-def decode_token(token: str) -> TokenData:
+def decode_token(token: str, required: bool = True) -> TokenData:
     try:
         payload = jwt.decode(token, settings.AUTH_PUBLIC_KEY_DATA, algorithms=[settings.AUTH_ALGORITHM])
-        if not payload:
+        if not payload and required:
             raise UnauthorizedError
         token_data = TokenData(**payload)
         if datetime.now() > token_data.exp.replace(tzinfo=None):
@@ -44,11 +44,9 @@ class JWTBearer(HTTPBearer):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        if not self.required:
-            return None
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
-            return decode_token(credentials.credentials)
+            return decode_token(credentials.credentials, required=self.required)
         raise HTTPException(status_code=403, detail="Invalid authorization code.")

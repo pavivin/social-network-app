@@ -51,6 +51,7 @@ class InitiativeView(BaseModel):
     comments_count: int
     reposts_count: int
     survey: SurveyView | None = None
+    is_liked: bool = False
 
 
 class InitiativeListView(BaseModel):
