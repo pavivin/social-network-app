@@ -1,9 +1,11 @@
 import os
+from io import BytesIO
 from uuid import uuid4
 
 import aiofiles
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import FileResponse
+from PIL import Image
 
 from voices.app.core.exceptions import (
     FileTooLargeError,
@@ -16,9 +18,24 @@ from voices.config import settings
 
 class Storage:
     @classmethod
-    async def create(cls, filename: str, file_data):
-        async with aiofiles.open(f"data/{filename}", mode="wb") as f:
-            await f.write(file_data)
+    def compress_jpeg(cls, file_data: bytes, filename: str):
+        foo = Image.open(BytesIO(file_data))
+
+        foo = foo.resize((foo.size), Image.LANCZOS)
+
+        foo.save(f"data/{filename}", optimize=True, quality=80)
+
+    @classmethod
+    def get_filename(cls, file_ext: str):
+        return f"{uuid4().hex}.{file_ext}"
+
+    @classmethod
+    async def create(cls, filename: str, file_ext: str, file_data: bytes):
+        if file_ext == "jpg":
+            cls.compress_jpeg(file_data=file_data, filename=filename)
+        else:
+            async with aiofiles.open(f"data/{filename}", mode="wb") as f:
+                await f.write(file_data)
 
 
 router = APIRouter()
@@ -37,9 +54,9 @@ async def add_file(upload_file: UploadFile):
     if len(file_data) > settings.FILE_MAX_SIZE_KB:
         raise FileTooLargeError
 
-    filename = f"{uuid4().hex}.{file_ext}"
+    filename = Storage.get_filename(file_ext)
 
-    await Storage.create(filename=filename, file_data=file_data)
+    await Storage.create(filename=filename, file_ext=file_ext, file_data=file_data)
 
     return Response(payload=filename)
 
