@@ -19,7 +19,8 @@ from voices.app.initiatives.views import (
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
-from voices.mongo.models import Survey
+
+# from voices.mongo.models import Survey
 
 router = APIRouter()
 
@@ -50,8 +51,8 @@ async def get_feed(
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
         view.is_liked = initiative.id in set_liked
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
 
         response.append(view)
 
@@ -75,8 +76,8 @@ async def get_favorites(
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
         view.is_liked = True
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
 
         response.append(view)
 
@@ -103,8 +104,8 @@ async def get_my(
     for initiative in feed:
         view = InitiativeView.from_orm(initiative)
         view.is_liked = initiative.id in set_liked
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
 
         response.append(view)
 
@@ -123,7 +124,7 @@ async def create_initiative(
 ):
     async with Transaction():
         user = await User.get(token.sub)
-        initiative_id = await Initiative.create(
+        await Initiative.create(
             city="test",
             user_id=user.id,
             images=body.images,
@@ -132,14 +133,6 @@ async def create_initiative(
             title=body.title,
             main_text=body.main_text,
         )
-        if body.survey:
-            survey = Survey(
-                id=initiative_id,
-                name=body.survey.name,
-                image_url=body.survey.image_url,
-                blocks=body.survey.blocks,
-            )
-            await survey.create()
 
     return Response()
 
