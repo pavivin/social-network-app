@@ -85,3 +85,4 @@ class CreateInitiativeVew(BaseModel):
     location: GeometryPoint | None = Field(examples=[{"lat": 57.624804, "lon": 39.885072}])
     title: str
     main_text: str
+    survey: SurveyCreate | None

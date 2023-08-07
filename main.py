@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-# from beanie import init_beanie
+from beanie import init_beanie
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,17 +16,16 @@ from voices.app.core import exceptions
 from voices.app.core.protocol import Response
 from voices.db.base import engine
 from voices.logger import logger
-
-# from voices.mongo import mongo_client
-# from voices.mongo.models import Survey, SurveyBlock, SurveyChoose
+from voices.mongo import mongo_client
+from voices.mongo.models import Survey, SurveyBlock, SurveyChoose
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await init_beanie(
-    #     database=mongo_client.voices,
-    #     document_models=[SurveyBlock, SurveyChoose, Survey],
-    # )
+    await init_beanie(
+        database=mongo_client.voices,
+        document_models=[SurveyBlock, SurveyChoose, Survey],
+    )
     yield
 
 
