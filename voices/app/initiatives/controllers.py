@@ -6,18 +6,21 @@ from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import ObsceneLanguageError
 from voices.app.core.protocol import PaginationView, Response
-from voices.app.core.responses import BadRequestResponse, NotFoundResponse
+from voices.app.core.responses import NotFoundResponse
 from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
 from voices.app.initiatives.views import (
     CommentListView,
     CommentReplyView,
     CommentRequestView,
+    CreateInitiativeVew,
     InitiativeListView,
     InitiativeView,
 )
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
+
+# from voices.mongo.models import Survey
 
 router = APIRouter()
 
@@ -31,6 +34,7 @@ async def get_feed(
     city: str = "test",
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
+    user_id = token.sub if token else None
     async with Transaction():
         # TODO: city
         feed = await Initiative.get_feed(
@@ -40,24 +44,108 @@ async def get_feed(
             status=status,
             role=role,
         )
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
+
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        view.is_liked = initiative.id in set_liked
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
 
     return Response(
         payload=InitiativeListView(
-            feed=[InitiativeView.from_orm(initiative) for initiative in feed],
+            feed=response,
             pagination=PaginationView(total=len(feed)),
         )
     )
 
 
-@router.get("/initiatives", response_model=Response[InitiativeListView])
-async def create_initiative(
-    _: TokenData | None = Depends(JWTBearer()),
+@router.get("/initiatives/favorites", response_model=Response[InitiativeListView])
+async def get_favorites(
+    last_id: uuid.UUID | None = None,
+    token: TokenData | None = Depends(JWTBearer()),
 ):
     async with Transaction():
-        # TODO: city
-        await Initiative.create()
+        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        view.is_liked = True
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=response,
+            pagination=PaginationView(total=len(feed)),
+        )
+    )
+
+
+@router.get("/initiatives/my", response_model=Response[InitiativeListView])
+async def get_my(
+    last_id: uuid.UUID | None = None,
+    token: TokenData | None = Depends(JWTBearer()),
+):
+    user_id = token.sub if token else None
+    async with Transaction():
+        feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
+
+    response = []
+    for initiative in feed:
+        view = InitiativeView.from_orm(initiative)
+        view.is_liked = initiative.id in set_liked
+        # if initiative.category == Initiative.Category.SURVEY:
+        #     view.survey = await Survey.get(initiative.id)
+
+        response.append(view)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=response,
+            pagination=PaginationView(total=len(feed)),
+        )
+    )
+
+
+@router.post("/initiatives", response_model=Response)
+async def create_initiative(
+    body: CreateInitiativeVew,
+    token: TokenData = Depends(JWTBearer()),
+):
+    async with Transaction():
+        user = await User.get(token.sub)
+        await Initiative.create(
+            city="test",
+            user_id=user.id,
+            images=body.images,
+            category=body.category,
+            location=body.location,
+            title=body.title,
+            main_text=body.main_text,
+        )
 
     return Response()
+
+
+@router.get(
+    "/initiatives/{initiative_id}",
+    response_model=Response[InitiativeView],
+)
+async def get_initiative(initiative_id: uuid.UUID):
+    async with Transaction():
+        initiative = await Initiative.select(initiative_id)
+
+    return Response(payload=InitiativeView.from_orm(initiative))
 
 
 @router.get(
@@ -67,10 +155,6 @@ async def create_initiative(
         status.HTTP_200_OK: {
             "model": Response[CommentListView],
             "description": "Ok Response",
-        },
-        status.HTTP_400_BAD_REQUEST: {
-            "model": BadRequestResponse,
-            "description": "Atributes are not correct or comment text is not appropriate",
         },
         status.HTTP_404_NOT_FOUND: {
             "model": NotFoundResponse,

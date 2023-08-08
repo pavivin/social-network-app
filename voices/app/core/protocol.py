@@ -49,9 +49,13 @@ class PaginationView(BaseModel):
     limit: int = settings.DEFAULT_PAGE_SIZE
 
 
-class GeometryPoint(dict):
+class GeometryPoint(BaseModel):
     lat: float
     lon: float
+
+    @staticmethod
+    def to_str(location: dict):
+        return f'POINT({location["lat"]} {location["lon"]})'
 
     @classmethod
     def __get_validators__(cls):

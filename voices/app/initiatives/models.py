@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -8,7 +9,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
 
 from voices.app.auth.models import User
-from voices.app.core.exceptions import AlreadyLikedError, AlreadyUnlikedError
+from voices.app.core.exceptions import (
+    AlreadyLikedError,
+    AlreadyUnlikedError,
+    NotFoundError,
+)
+from voices.app.core.protocol import GeometryPoint
 from voices.config import settings
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel, BaseModel
@@ -19,6 +25,11 @@ class Initiative(BaseDatetimeModel):
     __tablename__ = "initiatives"
 
     # TODO: to lowercase
+    class CitizenCategory(StrEnum):
+        PROBLEM = "PROBLEM"
+        EVENT = "EVENT"
+        DECIDE_TOGETHER = "DECIDE_TOGETHER"
+
     class Category(StrEnum):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
@@ -43,6 +54,8 @@ class Initiative(BaseDatetimeModel):
     comments_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     reposts_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
+    from_date: Mapped[datetime] = sa.Column(sa.DateTime())
+    to_date: Mapped[datetime] = sa.Column(sa.DateTime())
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
@@ -55,8 +68,33 @@ class Initiative(BaseDatetimeModel):
         await db_session.get().execute(query)
 
     @classmethod
-    async def create(cls):
-        ...
+    async def create(cls, city, user_id, images, title, main_text, category, location: GeometryPoint):
+        query = (
+            sa.insert(Initiative)
+            .values(
+                city=city,
+                user_id=user_id,
+                images=images,
+                title=title,
+                main_text=main_text,
+                category=category.value,
+                location=GeometryPoint.to_str(location),
+            )
+            .returning(Initiative.id)
+        )
+        result = await db_session.get().execute(query)
+        return result.scalars().first()
+
+    @classmethod
+    async def select(cls, initiative_id: str):
+        query = (
+            sa.select(cls).where((cls.deleted_at.is_(None) & (cls.id == initiative_id))).options(joinedload(cls.user))
+        )
+        result = await db_session.get().execute(query)
+        initiative = result.scalars().first()
+        if not initiative:
+            raise NotFoundError()
+        return initiative
 
     @classmethod
     async def get_feed(
@@ -86,6 +124,37 @@ class Initiative(BaseDatetimeModel):
 
         if role:
             query = query.where(cls.user.has(role=role))
+
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @classmethod
+    async def get_favorites(cls, city: str, user_id: str, last_id: str):
+        query = (
+            sa.select(Initiative)
+            .join(InitiativeLike, cls.id == InitiativeLike.initiative_id)
+            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (InitiativeLike.user_id == user_id)))
+            .limit(settings.DEFAULT_PAGE_SIZE)
+            .options(joinedload(Initiative.user))
+        )
+
+        if last_id:
+            query = query.where(cls.id > last_id)
+
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @classmethod
+    async def get_my(cls, city: str, user_id: str, last_id: str):
+        query = (
+            sa.select(Initiative)
+            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id)))
+            .limit(settings.DEFAULT_PAGE_SIZE)
+            .options(joinedload(Initiative.user))
+        )
+
+        if last_id:
+            query = query.where(cls.id > last_id)
 
         result = await db_session.get().execute(query)
         return result.scalars().all()
@@ -146,6 +215,12 @@ class InitiativeLike(BaseModel):
     initiative_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("initiatives.id"), nullable=False)
     initiative: Mapped[User] = relationship("Initiative", foreign_keys="InitiativeLike.initiative_id")
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
+
+    @classmethod
+    async def get_liked(cls, initiative_list: list[str], user_id: str):
+        query = sa.select(cls.initiative_id).where((cls.initiative_id.in_(initiative_list)) & (cls.user_id == user_id))
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
 
     @classmethod
     async def is_like_exists(cls, initiative_id: uuid.UUID, user_id: uuid.UUID):

@@ -53,6 +53,7 @@ services:
       - "27017"
     networks:
       - rocketchat
+      - voices-dev
     restart: always
   rocketchat:
     image: rocketchat/rocket.chat:6.1.7
