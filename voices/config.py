@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     TEST_DATABASE_URL: PostgresDsn = ""
     ALEMBIC_DATABASE_URL: PostgresDsn = ""
 
-    MONGO_URL: str
+    MONGO_URL: str = "mongodb://localhost:27017"
+    MONGO_REPLICA_SET: str = "rs0"
 
     SERVER_PORT: int = 8000
     SERVER_HOST: str = "0.0.0.0"
