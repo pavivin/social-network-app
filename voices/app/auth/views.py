@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import AnyUrl, EmailStr
 
@@ -33,6 +33,8 @@ class ProfileView(BaseModel):
     last_name: str | None = None
     image_url: AnyUrl | None = None
     city: str | None = None
+    district: str | None = None
+    birthdate: date | None = None
 
 
 class UserView(BaseModel):

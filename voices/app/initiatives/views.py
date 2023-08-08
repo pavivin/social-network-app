@@ -51,6 +51,7 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
+    created_at: datetime
     survey: dict | None = None
     is_liked: bool = False
 

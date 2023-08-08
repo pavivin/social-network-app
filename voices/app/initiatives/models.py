@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -53,6 +54,8 @@ class Initiative(BaseDatetimeModel):
     comments_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     reposts_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
+    from_date: Mapped[datetime] = sa.Column(sa.DateTime())
+    to_date: Mapped[datetime] = sa.Column(sa.DateTime())
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):

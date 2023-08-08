@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 
 from voices.app.core.exceptions import (
     EmailTakenError,
@@ -16,14 +16,7 @@ from voices.auth.jwt_token import (
 from voices.db.connection import Transaction
 
 from .models import User
-from .views import (
-    CheckUserLogin,
-    ProfileView,
-    SearchListView,
-    Token,
-    TokenData,
-    UserLogin,
-)
+from .views import CheckUserLogin, ProfileView, Token, TokenData, UserLogin
 
 router = APIRouter()
 
@@ -106,11 +99,3 @@ async def get_profile(token: TokenData = Depends(JWTBearer())):
         user = await User.get_by_id(id=token.sub)
 
     return Response(payload=ProfileView.from_orm(user))
-
-
-@router.get("/friends", response_model=Response[SearchListView])
-async def search_by_pattern(pattern: str = Query(min_length=2)):
-    async with Transaction():
-        users = await User.search_by_pattern(pattern=pattern)
-
-    return Response(payload=SearchListView(users=users))

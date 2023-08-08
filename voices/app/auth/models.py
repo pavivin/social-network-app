@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -23,6 +24,8 @@ class User(BaseDatetimeModel):
     image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
+    district: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
+    birthdate: Mapped[date] = sa.Column(sa.Date, nullable=True)
 
     @staticmethod
     async def get_by_email(email: str):
@@ -55,5 +58,11 @@ class User(BaseDatetimeModel):
                 sa.func.lower(User.last_name).contains(normalized_pattern),
             )
         )
+        result = (await db_session.get().execute(query)).scalars().all()
+        return result
+
+    @classmethod
+    async def get_friends(cls, user_id: str):
+        query = sa.select(User).where()
         result = (await db_session.get().execute(query)).scalars().all()
         return result
