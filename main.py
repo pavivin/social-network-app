@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-# from beanie import init_beanie
+from beanie import init_beanie
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
