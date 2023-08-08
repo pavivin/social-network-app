@@ -18,17 +18,16 @@ from voices.app.core.protocol import Response
 from voices.app.initiatives.models import Initiative
 from voices.db.base import engine
 from voices.logger import logger
-
-# from voices.mongo import mongo_client
-# from voices.mongo.models import Survey, SurveyBlock, SurveyChoose
+from voices.mongo import mongo_client
+from voices.mongo.models import Survey, SurveyBlock, SurveyChoose
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await init_beanie(
-    #     database=mongo_client.voices,
-    #     document_models=[SurveyBlock, SurveyChoose, Survey],
-    # )
+    await init_beanie(
+        database=mongo_client.voices,
+        document_models=[SurveyBlock, SurveyChoose, Survey],
+    )
     yield
 
 

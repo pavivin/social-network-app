@@ -28,6 +28,7 @@ services:
         - POSTGRES_PORT=5432
         - POSTGRES_DATABASE=${POSTGRES_DATABASE}
         - ROCKETCHAT_URL=http://rocketchat:3000
+        - MONGO_URL=mongodb://mongodb:27017/voices?replicaSet=rs0
     restart: always
     depends_on:
       - db
