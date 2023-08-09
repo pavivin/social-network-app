@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -54,8 +54,8 @@ class Initiative(BaseDatetimeModel):
     comments_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     reposts_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
-    from_date: Mapped[datetime] = sa.Column(sa.DateTime())
-    to_date: Mapped[datetime] = sa.Column(sa.DateTime())
+    from_date: Mapped[date] = sa.Column(sa.Date())
+    to_date: Mapped[date] = sa.Column(sa.Date())
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
@@ -104,6 +104,7 @@ class Initiative(BaseDatetimeModel):
         last_id: uuid.UUID | None = None,
         status: Status | None = None,
         role: User.Role | None = None,
+        search: str | None = None,
     ):
         query = (
             sa.select(cls)
@@ -111,6 +112,8 @@ class Initiative(BaseDatetimeModel):
             .limit(settings.DEFAULT_PAGE_SIZE)
             .options(joinedload(cls.user))
         )
+        if search:
+            query = query.where(cls.title.icontains(search))
 
         # TODO: unify filters
         if category:

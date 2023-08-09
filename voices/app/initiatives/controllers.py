@@ -31,6 +31,7 @@ async def get_feed(
     last_id: uuid.UUID | None = None,
     status: Initiative.Status | None = None,
     city: str = "test",
+    search: str | None = None,
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
@@ -42,6 +43,7 @@ async def get_feed(
             last_id=last_id,
             status=status,
             role=role,
+            search=search,
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)

@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     app_name = "voices-backend"
     tasks_name = "voices-tasks"
 
+    DEBUG: bool = False
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str
