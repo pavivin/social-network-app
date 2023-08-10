@@ -17,6 +17,7 @@ from voices.app.initiatives.views import (
     CommentReplyView,
     CommentRequestView,
     CreateInitiativeVew,
+    InitiativeDetailedView,
     InitiativeListView,
     InitiativeView,
     SurveyCreate,
@@ -54,8 +55,11 @@ async def get_feed(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
-    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
+    response = []
+    for initiative in feed:
+        initiative.is_liked = initiative.id in set_liked
+
+    response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
@@ -73,8 +77,11 @@ async def get_favorites(
     async with Transaction():
         feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
 
-    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
-    response = await Survey.get_surveys(feed=feed, token=token)
+    response = []
+    for initiative in feed:
+        initiative.is_liked = True
+
+    response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
@@ -95,8 +102,11 @@ async def get_my(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    feed = [InitiativeView.from_orm(initiative) for initiative in feed]  # TODO: Remove
-    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
+    response = []
+    for initiative in feed:
+        initiative.is_liked = initiative.id in set_liked
+
+    response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
@@ -128,7 +138,7 @@ async def create_initiative(
 
 @router.get(
     "/initiatives/{initiative_id}",
-    response_model=Response[InitiativeView],
+    response_model=Response[InitiativeDetailedView],
 )
 async def get_initiative(
     initiative_id: uuid.UUID,

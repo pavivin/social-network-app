@@ -68,6 +68,22 @@ class InitiativeView(BaseModel):
     comments_count: int
     reposts_count: int
     created_at: datetime
+    is_liked: bool = False
+
+
+class InitiativeDetailedView(InitiativeView):
+    id: str | uuid.UUID
+    user: UserView
+    city: str
+    images: list | dict | None
+    category: Initiative.Category
+    location: GeometryPoint | None
+    title: str
+    main_text: str
+    likes_count: int
+    comments_count: int
+    reposts_count: int
+    created_at: datetime
     survey: SurveyView | None = None
     is_liked: bool = False
 
