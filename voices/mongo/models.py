@@ -4,6 +4,8 @@ from enum import StrEnum
 from beanie import Document
 from pydantic import Field
 
+from voices.app.initiatives.models import Initiative
+
 
 class BaseDocument(Document):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
@@ -16,15 +18,11 @@ class SurveyType(StrEnum):
     CHOOSE_MULTIPLY = "choose_multiply"
 
 
-class ChooseType(StrEnum):
-    CHOOSE_ONE = "choose_one"
-    CHOOSE_MULTIPLY = "choose_multiply"
-
-
 class SurveyChoose(BaseDocument):
+    user_value: str | None = None
     value: str
-    choose_type: ChooseType
-    answer: str
+    vote_count: int = 0
+    vote_percent: int = 0
 
     class Settings:
         name = "survey_chooses"
@@ -32,18 +30,43 @@ class SurveyChoose(BaseDocument):
 
 class SurveyBlock(BaseDocument):
     question: str
-    answer_user_id: uuid.UUID | None = None
     survey_type: SurveyType
-    value: str | None | list[SurveyChoose] = None
+    answer: list[SurveyChoose]
+
+
+class SurveyAnswer(BaseDocument):
+    survey_id: uuid.UUID
+    user_id: uuid.UUID
+    blocks: list[SurveyBlock]
 
     class Settings:
-        name = "survey_blocks"
+        name = "survey_answers"
 
 
 class Survey(BaseDocument):
     name: str
     image_url: str
     blocks: list[SurveyBlock]
+    vote_count: int = 0
+
+    @classmethod
+    async def get_surveys(cls, feed, token, set_liked=None):
+        response = []
+        for initiative in feed:
+            initiative.is_liked = initiative.id in set_liked if set_liked else True
+            if initiative.category == Initiative.Category.SURVEY:  # TODO: optimize mongo queries
+                initiative.survey = await Survey.get(initiative.id)
+                if token:
+                    answer = await SurveyAnswer.find(
+                        SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative.id
+                    ).first_or_none()
+                    if answer:
+                        for i, item in enumerate(answer.blocks):
+                            for j, choose in enumerate(item.answer):
+                                initiative.survey.blocks[i].answer[j].user_value = choose.value
+
+            response.append(initiative)
+        return response
 
     class Settings:
         name = "surveys"

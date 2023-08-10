@@ -4,32 +4,49 @@ from datetime import datetime
 from pydantic import Field
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
-from voices.mongo.models import SurveyChoose, SurveyType
+from voices.mongo.models import SurveyType
 
 from .models import Initiative
+
+
+class SurveyChooseCreateView(BaseModel):
+    value: str = None
+
+
+class SurveyChooseView(BaseModel):
+    value: str
+    user_value: str = None
+    vote_count: int = 0
+    vote_percent: int = 0
 
 
 class SurveyBlockView(BaseModel):
     question: str
     survey_type: SurveyType
-    value: str | None | list[SurveyChoose] = None
+    answer: list[SurveyChooseView]
 
 
-class SurveyBlockCreate(BaseModel):
+class SurveyBlockCreateView(BaseModel):
     question: str
     survey_type: SurveyType
+    answer: list[SurveyChooseCreateView]
+
+
+class SurveyVoteView(BaseModel):
+    blocks: list[SurveyBlockCreateView]
 
 
 class SurveyCreate(BaseModel):
     name: str
-    image_url: str
-    blocks: list[SurveyBlockCreate]
+    image_url: str | None
+    blocks: list[SurveyBlockCreateView]
 
 
 class SurveyView(BaseModel):
     name: str
     image_url: str
     blocks: list[SurveyBlockView]
+    vote_count: int = 0
 
 
 class UserView(BaseModel):
@@ -51,7 +68,7 @@ class InitiativeView(BaseModel):
     comments_count: int
     reposts_count: int
     created_at: datetime
-    survey: dict | None = None
+    survey: SurveyView | None = None
     is_liked: bool = False
 
 

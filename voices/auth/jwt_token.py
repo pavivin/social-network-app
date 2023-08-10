@@ -7,7 +7,7 @@ from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError
 
 from voices.app.auth.views import TokenData
-from voices.app.core.exceptions import UnauthorizedError
+from voices.app.core.exceptions import JWTExpiredSignatureError, UnauthorizedError
 from voices.config import settings
 
 
@@ -33,7 +33,9 @@ def decode_token(token: str) -> TokenData:
         token_data = TokenData(**payload)
         if datetime.now() > token_data.exp.replace(tzinfo=None):
             raise UnauthorizedError
-    except (JWTError, ExpiredSignatureError, ValidationError) as e:
+    except ExpiredSignatureError as e:
+        raise JWTExpiredSignatureError from e
+    except (JWTError, ValidationError) as e:
         raise UnauthorizedError from e
     return token_data
 

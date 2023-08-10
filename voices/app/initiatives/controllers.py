@@ -4,7 +4,11 @@ from fastapi import APIRouter, Depends, status
 
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
-from voices.app.core.exceptions import ObsceneLanguageError
+from voices.app.core.exceptions import (
+    ObjectNotFoundError,
+    ObsceneLanguageError,
+    ValidationError,
+)
 from voices.app.core.protocol import PaginationView, Response
 from voices.app.core.responses import NotFoundResponse
 from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
@@ -15,11 +19,13 @@ from voices.app.initiatives.views import (
     CreateInitiativeVew,
     InitiativeListView,
     InitiativeView,
+    SurveyCreate,
+    SurveyVoteView,
 )
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
-from voices.mongo.models import Survey
+from voices.mongo.models import Survey, SurveyAnswer
 
 router = APIRouter()
 
@@ -48,14 +54,8 @@ async def get_feed(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    response = []
-    for initiative in feed:
-        view = InitiativeView.from_orm(initiative)
-        view.is_liked = initiative.id in set_liked
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
-
-        response.append(view)
+    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
+    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
     return Response(
         payload=InitiativeListView(
@@ -73,14 +73,8 @@ async def get_favorites(
     async with Transaction():
         feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
 
-    response = []
-    for initiative in feed:
-        view = InitiativeView.from_orm(initiative)
-        view.is_liked = True
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
-
-        response.append(view)
+    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
+    response = await Survey.get_surveys(feed=feed, token=token)
 
     return Response(
         payload=InitiativeListView(
@@ -101,14 +95,8 @@ async def get_my(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    response = []
-    for initiative in feed:
-        view = InitiativeView.from_orm(initiative)
-        view.is_liked = initiative.id in set_liked
-        if initiative.category == Initiative.Category.SURVEY:
-            view.survey = await Survey.get(initiative.id)
-
-        response.append(view)
+    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
+    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
     return Response(
         payload=InitiativeListView(
@@ -212,5 +200,42 @@ async def post_unlike(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBe
         await Initiative.get(initiative_id)
         await InitiativeLike.delete_like(initiative_id=initiative_id, user_id=token.sub)
         await Initiative.update_likes_count(initiative_id=initiative_id, count=-1)
+
+    return Response()
+
+
+@router.post("/initiatives/{initiative_id}/survey", response_model=Response)
+async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenData = Depends(JWTBearer())):
+    survey = Survey(
+        id=initiative_id,
+        name=body.name,
+        image_url=body.image_url,
+        blocks=body.blocks,
+    )
+    await survey.create()
+    return Response()
+
+
+@router.put("/initiatives/{initiative_id}/vote", response_model=Response)
+async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token: TokenData = Depends(JWTBearer())):
+    survey = await Survey.get(initiative_id)  # TODO: to background
+    if not survey:
+        raise ObjectNotFoundError
+
+    answer = SurveyAnswer(survey_id=initiative_id, user_id=token.sub, blocks=body.blocks)
+    await answer.create()
+
+    survey.vote_count += 1
+
+    for i, block in enumerate(answer.blocks):
+        for j, option in enumerate(block.answer):
+            if option.value is not None:
+                try:
+                    survey.blocks[i].answer[j].vote_count += 1
+                    survey.blocks[i].answer[j].vote_percent = int((option.vote_count / survey.vote_count) * 100)
+                except KeyError:
+                    raise ValidationError(message="Not enough values in answer")
+
+    await survey.save()
 
     return Response()
