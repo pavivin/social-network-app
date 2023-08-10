@@ -95,7 +95,7 @@ async def get_my(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    feed = [InitiativeView.from_orm(initiative) for initiative in feed]
+    feed = [InitiativeView.from_orm(initiative) for initiative in feed]  # TODO: Remove
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
     return Response(
@@ -130,11 +130,20 @@ async def create_initiative(
     "/initiatives/{initiative_id}",
     response_model=Response[InitiativeView],
 )
-async def get_initiative(initiative_id: uuid.UUID):
+async def get_initiative(
+    initiative_id: uuid.UUID,
+    token: TokenData | None = Depends(JWTBearer(required=False)),
+):
+    user_id = token.sub if token else None
     async with Transaction():
         initiative = await Initiative.select(initiative_id)
+        liked = await InitiativeLike.get_liked(initiative_list=[initiative.id], user_id=user_id)
+        set_liked = set(liked)
 
-    return Response(payload=InitiativeView.from_orm(initiative))
+    feed = [InitiativeView.from_orm(initiative)]
+    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
+
+    return Response(payload=response[0])
 
 
 @router.get(
