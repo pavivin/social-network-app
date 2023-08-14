@@ -80,8 +80,7 @@ async def get_favorites(
     response = []
     for initiative in feed:
         initiative.is_liked = True
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
@@ -105,8 +104,7 @@ async def get_my(
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
