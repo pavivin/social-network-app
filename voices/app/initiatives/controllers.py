@@ -58,8 +58,7 @@ async def get_feed(
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
