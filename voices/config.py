@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     FILE_MAX_SIZE_MB: int = 10
     FILE_MAX_SIZE_KB: int = 1024 * 1024 * FILE_MAX_SIZE_MB
 
+    ROCKETCHAT_WEBSOCKET: str
+    ROCKETCHAT_USER: str
+    ROCKETCHAT_PASSWORD: str
+    ROCKETCHAT_URL: str
+
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
         if v and isinstance(v, str):

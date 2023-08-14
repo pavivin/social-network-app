@@ -13,15 +13,16 @@ from voices.auth.jwt_token import (
     create_refresh_token,
     decode_token,
 )
+from voices.chat import create_user, login_user
 from voices.db.connection import Transaction
 
 from .models import User
-from .views import CheckUserLogin, ProfileView, Token, TokenData, UserLogin
+from .views import CheckUserLogin, ProfileView, Token, TokenData, TokenView, UserLogin
 
 router = APIRouter()
 
 
-@router.post("/registration", response_model=Response[Token])
+@router.post("/registration", response_model=Response[TokenView])
 async def register_user(body: UserLogin):
     async with Transaction():
         user = await User.get_by_email(body.email)
@@ -33,8 +34,17 @@ async def register_user(body: UserLogin):
         access_token = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
         refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
 
+        await create_user(user_id=user.id, email=user.email)
+        rocketchat_response = await login_user(user_id=user.id)
+        json_response = rocketchat_response.json()
+
         return Response(
-            payload=Token(access_token=access_token, refresh_token=refresh_token),
+            payload=TokenView(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                rocketchat_user_id=json_response["data"]["userId"],
+                rocketchat_auth_token=json_response["data"]["authToken"],
+            ),
         )
 
 
@@ -48,7 +58,7 @@ async def check_mail(body: CheckUserLogin):
     return Response()
 
 
-@router.post("/login", response_model=Response[Token])
+@router.post("/login", response_model=Response[TokenView])
 async def authenticate_user(body: UserLogin):
     async with Transaction():
         user = await User.get_by_email(body.email)
@@ -61,12 +71,24 @@ async def authenticate_user(body: UserLogin):
     access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
+    rocketchat_response = await login_user(user_id=user.id)
+    if rocketchat_response.status_code == 401:
+        await create_user(user_id=user.id, email=user.email)
+        rocketchat_response = await login_user(user_id=user.id)
+
+    json_response = rocketchat_response.json()
+
     return Response(
-        payload=Token(access_token=access_token, refresh_token=refresh_token),
+        payload=TokenView(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            rocketchat_user_id=json_response["data"]["userId"],
+            rocketchat_auth_token=json_response["data"]["authToken"],
+        ),
     )
 
 
-@router.post("/refresh-token", response_model=Response[Token])
+@router.post("/refresh-token", response_model=Response[TokenView])
 async def post_refresh_token(body: Token):
     _token = decode_token(body.refresh_token)
     async with Transaction():
@@ -78,8 +100,21 @@ async def post_refresh_token(body: Token):
     access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
+    rocketchat_response = await login_user(user_id=user.id)
+
+    if rocketchat_response.get("error") == "Unauthorized":
+        await create_user(user_id=user.id, email=user.email)
+        rocketchat_response = await login_user(user_id=user.id)
+
+    json_response = rocketchat_response.json()
+
     return Response(
-        payload=Token(access_token=access_token, refresh_token=refresh_token),
+        payload=TokenView(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            rocketchat_user_id=json_response["data"]["userId"],
+            rocketchat_auth_token=json_response["data"]["authToken"],
+        ),
     )
 
 

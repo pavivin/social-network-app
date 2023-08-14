@@ -12,6 +12,13 @@ class Token(BaseModel):
     refresh_token: str
 
 
+class TokenView(BaseModel):
+    access_token: str
+    refresh_token: str
+    rocketchat_user_id: str
+    rocketchat_auth_token: str
+
+
 class TokenData(BaseModel):
     sub: str
     email: EmailStr
