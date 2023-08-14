@@ -19,7 +19,6 @@ from voices.app.initiatives.views import (
     CreateInitiativeVew,
     InitiativeDetailedView,
     InitiativeListView,
-    InitiativeView,
     SurveyCreate,
     SurveyVoteView,
 )
@@ -147,7 +146,7 @@ async def get_initiative(
         liked = await InitiativeLike.get_liked(initiative_list=[initiative.id], user_id=user_id)
         set_liked = set(liked)
 
-    feed = [InitiativeView.from_orm(initiative)]
+    feed = [InitiativeDetailedView.from_orm(initiative)]
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
     return Response(payload=response[0])
