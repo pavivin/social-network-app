@@ -72,7 +72,7 @@ async def authenticate_user(body: UserLogin):
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     rocketchat_response = await login_user(user_id=user.id)
-    if rocketchat_response.status_code == 401:
+    if rocketchat_response.status_code != 200:
         await create_user(user_id=user.id, email=user.email)
         rocketchat_response = await login_user(user_id=user.id)
 
@@ -102,7 +102,7 @@ async def post_refresh_token(body: Token):
 
     rocketchat_response = await login_user(user_id=user.id)
 
-    if rocketchat_response.get("error") == "Unauthorized":
+    if rocketchat_response.status_code != 200:
         await create_user(user_id=user.id, email=user.email)
         rocketchat_response = await login_user(user_id=user.id)
 
