@@ -119,11 +119,11 @@ async def post_refresh_token(body: Token):
 
 
 @router.patch("/profile", response_model=Response[ProfileView])
-async def update_profile(body: ProfileView):
+async def update_profile(body: ProfileView, token: TokenData = Depends(JWTBearer())):
     unset = body.dict(exclude_unset=True)
 
     async with Transaction():
-        user = await User.update_profile(unset)
+        user = await User.update_profile(unset, user_id=token.sub)
 
     return Response(payload=ProfileView.from_orm(user))
 

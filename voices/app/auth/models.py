@@ -45,8 +45,8 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def update_profile(unset: dict):
-        query = sa.update(User).values(**unset).returning(User)
+    async def update_profile(unset: dict, user_id: str):
+        query = sa.update(User).values(**unset).where(User.id == user_id).returning(User)
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
