@@ -55,6 +55,8 @@ class GeometryPoint(BaseModel):
 
     @staticmethod
     def to_str(location: dict):
+        if not location:
+            return None
         return f'POINT({location["lat"]} {location["lon"]})'
 
     @classmethod
