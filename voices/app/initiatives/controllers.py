@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
+    AlreadyVotedError,
     ObjectNotFoundError,
     ObsceneLanguageError,
     ValidationError,
@@ -236,6 +237,13 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
     survey = await Survey.get(initiative_id)  # TODO: to background
     if not survey:
         raise ObjectNotFoundError
+
+    existing_answer = await SurveyAnswer.find(
+        SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
+    ).first_or_none()
+
+    if existing_answer:  # TODO: create composite FK
+        raise AlreadyVotedError
 
     answer = SurveyAnswer(survey_id=initiative_id, user_id=token.sub, blocks=body.blocks)
     await answer.create()
