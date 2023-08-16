@@ -26,7 +26,7 @@ from voices.app.initiatives.views import (
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
-from voices.mongo.models import Survey, SurveyAnswer
+from voices.mongo.models import Survey, SurveyAnswer, SurveyType
 
 router = APIRouter()
 
@@ -246,7 +246,6 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
         raise AlreadyVotedError
 
     answer = SurveyAnswer(survey_id=initiative_id, user_id=token.sub, blocks=body.blocks)
-    await answer.create()
 
     survey.vote_count += 1
 
@@ -259,6 +258,10 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
                 except KeyError:
                     raise ValidationError(message="Not enough values in answer")
 
+            if survey.blocks[i].survey_type == SurveyType.CHOOSE_ONE:
+                option.value = bool(option.value)
+
+    await answer.create()
     await survey.save()
 
     return Response()

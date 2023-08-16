@@ -50,6 +50,7 @@ class SurveyView(BaseModel):
 
 
 class UserView(BaseModel):
+    id: uuid.UUID | str
     first_name: str = "unknown"
     last_name: str = "user"
     image_url: str | None
