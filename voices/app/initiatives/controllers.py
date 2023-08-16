@@ -150,7 +150,11 @@ async def get_initiative(
     feed = [InitiativeDetailedView.from_orm(initiative)]
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
-    return Response(payload=response[0])
+    answer = response[0]
+
+    answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
+
+    return Response(payload=answer)
 
 
 @router.get(

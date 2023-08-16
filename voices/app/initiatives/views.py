@@ -87,6 +87,7 @@ class InitiativeDetailedView(InitiativeView):
     created_at: datetime
     survey: SurveyView | None = None
     is_liked: bool = False
+    is_voted: bool = False
 
 
 class InitiativeListView(BaseModel):
