@@ -152,7 +152,8 @@ async def get_initiative(
 
     answer = response[0]
 
-    answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
+    if answer.survey:
+        answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
 
     return Response(payload=answer)
 
