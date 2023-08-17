@@ -31,7 +31,7 @@ async def register_user(body: UserLogin):
 
         user = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
 
-        access_token = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
+        access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
         refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
 
         await create_user(user_id=user.id, email=user.email)
@@ -44,6 +44,7 @@ async def register_user(body: UserLogin):
                 refresh_token=refresh_token,
                 rocketchat_user_id=json_response["data"]["userId"],
                 rocketchat_auth_token=json_response["data"]["authToken"],
+                exp=exp,
             ),
         )
 
@@ -68,7 +69,7 @@ async def authenticate_user(body: UserLogin):
     if not verify_password(body.password, user.hashed_password):
         raise PasswordMatchError
 
-    access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     rocketchat_response = await login_user(user_id=user.id)
@@ -84,6 +85,7 @@ async def authenticate_user(body: UserLogin):
             refresh_token=refresh_token,
             rocketchat_user_id=json_response["data"]["userId"],
             rocketchat_auth_token=json_response["data"]["authToken"],
+            exp=exp,
         ),
     )
 
@@ -97,7 +99,7 @@ async def post_refresh_token(body: Token):
     if not user:
         raise UserNotFoundError
 
-    access_token = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
 
     rocketchat_response = await login_user(user_id=user.id)
@@ -114,6 +116,7 @@ async def post_refresh_token(body: Token):
             refresh_token=refresh_token,
             rocketchat_user_id=json_response["data"]["userId"],
             rocketchat_auth_token=json_response["data"]["authToken"],
+            exp=exp,
         ),
     )
 

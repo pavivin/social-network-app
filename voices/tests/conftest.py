@@ -47,5 +47,5 @@ def client() -> AsyncClient:
 @pytest_asyncio.fixture
 async def token() -> AsyncSession:
     user = await UserFactory.create()
-    access_token = create_access_token(TokenData(sub=str(user.id), email=user.email, role=user.role))
+    access_token, _ = create_access_token(TokenData(sub=str(user.id), email=user.email, role=user.role))
     return access_token
