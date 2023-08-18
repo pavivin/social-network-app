@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 
-from voices.app.auth.models import User
 from voices.app.auth.views import SearchListView, TokenData
 from voices.app.core.protocol import Response
+from voices.app.friends.models import Friend, User
 from voices.auth.jwt_token import JWTBearer
 from voices.db.connection import Transaction
 
@@ -15,8 +15,8 @@ async def search_by_pattern(
 ):
     async with Transaction():
         if not pattern:
-            # users = await User.get_friends(user_id=token.sub)
-            users = []
+            response = await Friend.get_friends(user_id=token.sub)
+            users = [item.friend for item in response]
         else:
             users = await User.search_by_pattern(pattern=pattern)
 

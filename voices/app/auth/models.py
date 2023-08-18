@@ -60,9 +60,3 @@ class User(BaseDatetimeModel):
         )
         result = (await db_session.get().execute(query)).scalars().all()
         return result
-
-    @classmethod
-    async def get_friends(cls, user_id: str):
-        query = sa.select(User).where()
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result

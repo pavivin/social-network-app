@@ -7,6 +7,7 @@ from voices.db import Base
 config = context.config
 
 from voices.app.auth.models import *  # noqa
+from voices.app.friends.models import *  # noqa
 from voices.app.initiatives.models import *  # noqa
 
 IGNORE_TABLES = ("spatial_ref_sys",)
