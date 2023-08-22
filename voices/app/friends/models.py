@@ -42,7 +42,7 @@ class Friend(BaseModel):
 
     @classmethod
     async def add_friend(cls, user_id: str, friend_id: str):
-        query = sa.insert(Friend).values(user_id=user_id, friend_id=friend_id)
+        query = sa.insert(Friend).values(user_id=friend_id, friend_id=user_id)
         result = await db_session.get().execute(query)
         return result
 
@@ -51,6 +51,16 @@ class Friend(BaseModel):
         query = (
             sa.update(Friend)
             .values(relationship_type=RelationshipType.FRIEND)
+            .where((Friend.user_id == user_id) & (Friend.friend_id == friend_id))
+        )
+        result = await db_session.get().execute(query)
+        return result
+
+    @classmethod
+    async def remove_friend(cls, user_id: str, friend_id: str):
+        query = (
+            sa.update(Friend)
+            .values(relationship_type=RelationshipType.FOLLOWER)
             .where((Friend.user_id == user_id) & (Friend.friend_id == friend_id))
         )
         result = await db_session.get().execute(query)

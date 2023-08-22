@@ -21,3 +21,27 @@ async def search_by_pattern(
             users = await User.search_by_pattern(pattern=pattern)
 
     return Response(payload=SearchListView(users=users))
+
+
+@router.patch("/friends/{friend_id}/add", response_model=Response[SearchListView])
+async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Friend.add_friend(user_id=token.sub, friend_id=friend_id)
+
+    return Response()
+
+
+@router.patch("/friends/{friend_id}/approve", response_model=Response[SearchListView])
+async def approve_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Friend.approve_friend(user_id=token.sub, friend_id=friend_id)
+
+    return Response()
+
+
+@router.patch("/friends/{friend_id}/remove", response_model=Response[SearchListView])
+async def remove_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Friend.remove_friend(user_id=token.sub, friend_id=friend_id)
+
+    return Response()
