@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/friends", response_model=Response[SearchListView])
 async def search_by_pattern(
-    pattern: str | None = Query(default=None, min_length=2), token: TokenData = Depends(JWTBearer())
+    pattern: str | None = Query(default=None, min_length=1), token: TokenData = Depends(JWTBearer())
 ):
     async with Transaction():
         if not pattern:
