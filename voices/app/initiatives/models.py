@@ -108,14 +108,18 @@ class Initiative(BaseDatetimeModel):
         status: Status | None = None,
         role: User.Role | None = None,
         search: str | None = None,
+        is_total: bool = False,
     ):
-        query = (
-            sa.select(cls)
-            .where((cls.city == city) & (cls.deleted_at.is_(None)))
-            .limit(settings.DEFAULT_PAGE_SIZE)
-            .order_by(cls.id.desc())
-            .options(joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id))
-        )
+        selected = sa.func.count(cls.id) if is_total else cls
+        query = sa.select(selected).where((cls.city == city) & (cls.deleted_at.is_(None)))
+
+        if not is_total:
+            query = query.limit(settings.DEFAULT_PAGE_SIZE)
+            query = query.options(
+                joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id)
+            )
+            query = query.order_by(cls.id.desc())
+
         if search:
             query = query.where(cls.title.icontains(search))
 
@@ -133,6 +137,8 @@ class Initiative(BaseDatetimeModel):
             query = query.where(cls.user.has(role=role))
 
         result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
         return result.scalars().all()
 
     @classmethod

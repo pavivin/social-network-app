@@ -45,7 +45,8 @@ class Response(PydanticGenericModel, Generic[DataT]):
 
 
 class PaginationView(BaseModel):
-    total: int
+    count: int = 0
+    total: int = 0
     limit: int = settings.DEFAULT_PAGE_SIZE
 
 
