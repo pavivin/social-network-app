@@ -146,7 +146,7 @@ class Initiative(BaseDatetimeModel):
         )
 
         if last_id:
-            query = query.where(cls.id > last_id)
+            query = query.where(cls.id < last_id)
 
         result = await db_session.get().execute(query)
         return result.scalars().all()
@@ -161,7 +161,7 @@ class Initiative(BaseDatetimeModel):
         )
 
         if last_id:
-            query = query.where(cls.id > last_id)
+            query = query.where(cls.id < last_id)
 
         result = await db_session.get().execute(query)
         return result.scalars().all()
@@ -206,7 +206,7 @@ class Comment(BaseDatetimeModel):
         )
 
         if last_id:
-            query = query.where(Comment.id > last_id)
+            query = query.where(Comment.id < last_id)
 
         result = await db_session.get().execute(query)
         return result.unique().scalars().all()
