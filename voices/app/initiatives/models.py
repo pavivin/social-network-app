@@ -113,7 +113,7 @@ class Initiative(BaseDatetimeModel):
             sa.select(cls)
             .where((cls.city == city) & (cls.deleted_at.is_(None)))
             .limit(settings.DEFAULT_PAGE_SIZE)
-            .order_by(cls.created_at.desc())
+            .order_by(cls.id.desc())
             .options(joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id))
         )
         if search:
@@ -143,6 +143,7 @@ class Initiative(BaseDatetimeModel):
             .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (InitiativeLike.user_id == user_id)))
             .limit(settings.DEFAULT_PAGE_SIZE)
             .options(joinedload(Initiative.user))
+            .order_by(cls.id.desc())
         )
 
         if last_id:
@@ -158,6 +159,7 @@ class Initiative(BaseDatetimeModel):
             .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id)))
             .limit(settings.DEFAULT_PAGE_SIZE)
             .options(joinedload(Initiative.user))
+            .order_by(cls.id.desc())
         )
 
         if last_id:
