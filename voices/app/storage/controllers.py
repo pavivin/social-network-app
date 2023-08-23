@@ -1,11 +1,11 @@
 import os
 from io import BytesIO
-from uuid import uuid4
 
 import aiofiles
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
+from uuid_extensions import uuid7
 
 from voices.app.core.exceptions import (
     FileTooLargeError,
@@ -27,7 +27,7 @@ class Storage:
 
     @classmethod
     def get_filename(cls, file_ext: str):
-        return f"{uuid4().hex}.{file_ext}"
+        return f"{uuid7().hex}.{file_ext}"
 
     @classmethod
     async def create(cls, filename: str, file_ext: str, file_data: bytes):

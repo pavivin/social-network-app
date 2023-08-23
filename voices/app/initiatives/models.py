@@ -192,7 +192,7 @@ class Comment(BaseDatetimeModel):
                 & (Comment.deleted_at.is_(None))
                 & (Comment.parent_id.is_(None))
             )
-            .order_by(Comment.id.asc())
+            .order_by(Comment.id.desc())
             .options(
                 joinedload(Comment.user, innerjoin=True),
                 joinedload(Comment.initiative),

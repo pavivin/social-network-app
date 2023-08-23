@@ -3,10 +3,11 @@ from enum import StrEnum
 
 from beanie import Document
 from pydantic import Field
+from uuid_extensions import uuid7
 
 
 class BaseDocument(Document):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    id: uuid.UUID = Field(default_factory=uuid7)
 
 
 class SurveyType(StrEnum):
