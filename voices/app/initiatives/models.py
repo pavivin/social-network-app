@@ -124,7 +124,7 @@ class Initiative(BaseDatetimeModel):
             query = query.where(cls.category == category)
 
         if last_id:
-            query = query.where(cls.id > last_id)
+            query = query.where(cls.id < last_id)
 
         if status:
             query = query.where(cls.status == status)
