@@ -113,6 +113,7 @@ class Initiative(BaseDatetimeModel):
             sa.select(cls)
             .where((cls.city == city) & (cls.deleted_at.is_(None)))
             .limit(settings.DEFAULT_PAGE_SIZE)
+            .order_by(cls.created_at.desc())
             .options(joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id))
         )
         if search:
