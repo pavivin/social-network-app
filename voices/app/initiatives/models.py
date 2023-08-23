@@ -29,6 +29,9 @@ class Initiative(BaseDatetimeModel):
         PROBLEM = "PROBLEM"
         EVENT = "EVENT"
         DECIDE_TOGETHER = "DECIDE_TOGETHER"
+        SURVEY = "SURVEY"
+        PROJECT = "PROJECT"
+        BUILDING = "BUILDING"
 
     class Category(StrEnum):
         PROBLEM = "PROBLEM"
