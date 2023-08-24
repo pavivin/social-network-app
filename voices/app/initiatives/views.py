@@ -90,6 +90,7 @@ class InitiativeDetailedView(InitiativeView):
     is_liked: bool = False
     is_voted: bool = False
     tags: list[str] | None
+    ar_model: str | None
 
 
 class InitiativeListView(BaseModel):
