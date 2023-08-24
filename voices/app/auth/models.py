@@ -50,7 +50,7 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def search_by_pattern(pattern: str):
+    async def search_by_pattern(pattern: str, last_id: str | None):
         normalized_pattern = pattern.lower()
         query = sa.select(User).where(
             sa.or_(

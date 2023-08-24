@@ -142,36 +142,41 @@ class Initiative(BaseDatetimeModel):
         return result.scalars().all()
 
     @classmethod
-    async def get_favorites(cls, city: str, user_id: str, last_id: str):
+    async def get_favorites(cls, city: str, user_id: str, last_id: str, is_total: bool = False):
+        selected = sa.func.count(cls.id) if is_total else cls
         query = (
-            sa.select(Initiative)
+            sa.select(selected)
             .join(InitiativeLike, cls.id == InitiativeLike.initiative_id)
             .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (InitiativeLike.user_id == user_id)))
-            .limit(settings.DEFAULT_PAGE_SIZE)
-            .options(joinedload(Initiative.user))
-            .order_by(cls.id.desc())
         )
+
+        if not is_total:
+            query = query.limit(settings.DEFAULT_PAGE_SIZE).options(joinedload(Initiative.user)).order_by(cls.id.desc())
 
         if last_id:
             query = query.where(cls.id < last_id)
 
         result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
         return result.scalars().all()
 
     @classmethod
-    async def get_my(cls, city: str, user_id: str, last_id: str):
-        query = (
-            sa.select(Initiative)
-            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id)))
-            .limit(settings.DEFAULT_PAGE_SIZE)
-            .options(joinedload(Initiative.user))
-            .order_by(cls.id.desc())
+    async def get_my(cls, city: str, user_id: str, last_id: str, is_total: bool = False):
+        selected = sa.func.count(cls.id) if is_total else cls
+        query = sa.select(selected).where(
+            (Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id))
         )
+
+        if not is_total:
+            query = query.limit(settings.DEFAULT_PAGE_SIZE).options(joinedload(Initiative.user)).order_by(cls.id.desc())
 
         if last_id:
             query = query.where(cls.id < last_id)
 
         result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
         return result.scalars().all()
 
 
@@ -182,7 +187,7 @@ class Comment(BaseDatetimeModel):
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
     user: Mapped[User] = relationship("User", foreign_keys="Comment.user_id")
     initiative_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("initiatives.id"), nullable=False)
-    initiative: Mapped[User] = relationship("Initiative", foreign_keys="Comment.initiative_id")
+    initiative: Mapped[Initiative] = relationship("Initiative", foreign_keys="Comment.initiative_id")
     parent_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("comments.id"), nullable=True)
     replies = relationship("Comment", foreign_keys="Comment.parent_id", uselist=True, lazy="joined")
 
@@ -196,27 +201,29 @@ class Comment(BaseDatetimeModel):
         return await db_session.get().execute(query)
 
     @staticmethod
-    async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID | None = None):
-        query = (
-            sa.select(Comment)
-            .where(
-                (Comment.initiative_id == initiative_id)
-                & (Comment.deleted_at.is_(None))
-                & (Comment.parent_id.is_(None))
-            )
-            .order_by(Comment.id.desc())
-            .options(
-                joinedload(Comment.user, innerjoin=True),
-                joinedload(Comment.initiative),
-                joinedload(Comment.replies).joinedload(Comment.user),
-            )
-            .limit(settings.DEFAULT_PAGE_SIZE)
+    async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID | None = None, is_total: bool = False):
+        selected = sa.func.count(Comment.id) if is_total else Comment
+        query = sa.select(selected).where(
+            (Comment.initiative_id == initiative_id) & (Comment.deleted_at.is_(None)) & (Comment.parent_id.is_(None))
         )
+
+        if not is_total:
+            query = (
+                query.order_by(Comment.id.desc())
+                .options(
+                    joinedload(Comment.user, innerjoin=True),
+                    joinedload(Comment.initiative),
+                    joinedload(Comment.replies).joinedload(Comment.user),
+                )
+                .limit(settings.DEFAULT_PAGE_SIZE)
+            )
 
         if last_id:
             query = query.where(Comment.id < last_id)
 
         result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
         return result.unique().scalars().all()
 
 

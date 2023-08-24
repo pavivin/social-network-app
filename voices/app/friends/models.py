@@ -28,7 +28,7 @@ class Friend(BaseModel):
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
     @classmethod
-    async def get_friends(cls, user_id: str):
+    async def get_friends(cls, user_id: str, last_id: str | None):
         query = (
             sa.select(Friend)
             .where(

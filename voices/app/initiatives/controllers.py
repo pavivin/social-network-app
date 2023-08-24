@@ -77,17 +77,18 @@ async def get_favorites(
     token: TokenData | None = Depends(JWTBearer()),
 ):
     async with Transaction():
-        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)
+        total = await Initiative.get_favorites(city="test", user_id=token.sub, is_total=True)
 
     response = []
-    for initiative in feed:
+    for initiative in feed:  # TODO: rewrite
         initiative.is_liked = True
         response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
             feed=response,
-            pagination=PaginationView(total=len(feed)),
+            pagination=PaginationView(count=len(feed), total=total),
         )
     )
 
@@ -100,6 +101,7 @@ async def get_my(
     user_id = token.sub if token else None
     async with Transaction():
         feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        total = await Initiative.get_my(city="test", user_id=token.sub, is_total=True)  # TODO: get from user
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
@@ -111,7 +113,7 @@ async def get_my(
     return Response(
         payload=InitiativeListView(
             feed=response,
-            pagination=PaginationView(total=len(feed)),
+            pagination=PaginationView(count=len(feed), total=total),
         )
     )
 
@@ -153,7 +155,7 @@ async def get_initiative(
     feed = [InitiativeDetailedView.from_orm(initiative)]
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
-    answer = response[0]
+    answer = response[0]  # TODO: rewrite
 
     if answer.survey:
         answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
