@@ -28,17 +28,22 @@ class Friend(BaseModel):
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
     @classmethod
-    async def get_friends(cls, user_id: str, last_id: str | None):
-        query = (
-            sa.select(Friend)
-            .where(
-                sa.or_(Friend.user_id == user_id, Friend.friend_id == user_id)
-                & (Friend.relationship_type == RelationshipType.FRIEND)
-            )
-            .options(joinedload(cls.friend).load_only(User.first_name, User.last_name, User.image_url, User.id))
+    async def get_friends(cls, user_id: str, last_id: str | None = None, is_total: bool = False):
+        selected = sa.func.count(cls.id) if is_total else cls
+        query = sa.select(selected).where(
+            sa.or_(Friend.user_id == user_id, Friend.friend_id == user_id)
+            & (Friend.relationship_type == RelationshipType.FRIEND)
         )
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result
+        if not is_total:
+            query = query.options(
+                joinedload(cls.friend).load_only(User.first_name, User.last_name, User.image_url, User.id)
+            )
+        if last_id:
+            query = query.where(cls.id < last_id)
+        result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
+        return result.scalars().all()
 
     @classmethod
     async def add_friend(cls, user_id: str, friend_id: str):

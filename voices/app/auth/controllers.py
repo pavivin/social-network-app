@@ -84,7 +84,7 @@ async def authenticate_user(body: UserLogin):
             access_token=access_token,
             refresh_token=refresh_token,
             rocketchat_user_id=user.id.hex,
-            rocketchat_auth_token=json_response["data"]["authToken"],
+            rocketchat_auth_token=json_response.get("data", {}).get("authToken", ""),
             exp=exp,
         ),
     )

@@ -50,13 +50,18 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def search_by_pattern(pattern: str, last_id: str | None):
+    async def search_by_pattern(pattern: str, last_id: str | None = None, is_total: bool = False):
         normalized_pattern = pattern.lower()
-        query = sa.select(User).where(
+        selected = sa.func.count(User.id) if is_total else User
+        query = sa.select(selected).where(
             sa.or_(
                 sa.func.lower(User.first_name).contains(normalized_pattern),
                 sa.func.lower(User.last_name).contains(normalized_pattern),
             )
         )
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result
+        if last_id:
+            query = query.where(User.id < last_id)
+        result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
+        return result.scalars().all()

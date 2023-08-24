@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, Query
 
-from voices.app.auth.views import SearchListView, TokenData
+from voices.app.auth.views import TokenData
 from voices.app.core.protocol import Response
 from voices.app.friends.models import Friend, User
+from voices.app.friends.views import FriendListView, PaginationView
 from voices.auth.jwt_token import JWTBearer
 from voices.db.connection import Transaction
 
 router = APIRouter()
 
 
-@router.get("/friends", response_model=Response[SearchListView])
+@router.get("/friends", response_model=Response[FriendListView])
 async def search_by_pattern(
     pattern: str | None = Query(default=None, min_length=1),
     last_id: str | None = None,
@@ -17,15 +18,22 @@ async def search_by_pattern(
 ):
     async with Transaction():
         if not pattern:
-            response = await Friend.get_friends(user_id=token.sub, last_id=last_id)
-            users = [item.friend for item in response]
+            users = await Friend.get_friends(user_id=token.sub, last_id=last_id)
+            users = [user.friend for user in users]
+            total = await Friend.get_friends(user_id=token.sub, is_total=True)
         else:
             users = await User.search_by_pattern(pattern=pattern, last_id=last_id)
+            total = await User.search_by_pattern(pattern=pattern, is_total=True)
 
-    return Response(payload=SearchListView(users=users))
+    return Response(
+        payload=FriendListView(
+            users=users,
+            pagination=PaginationView(count=len(users), total=total),
+        )
+    )
 
 
-@router.patch("/friends/{friend_id}/add", response_model=Response[SearchListView])
+@router.patch("/friends/{friend_id}/add", response_model=Response)
 async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         await Friend.add_friend(user_id=token.sub, friend_id=friend_id)
@@ -33,7 +41,7 @@ async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     return Response()
 
 
-@router.patch("/friends/{friend_id}/approve", response_model=Response[SearchListView])
+@router.patch("/friends/{friend_id}/approve", response_model=Response)
 async def approve_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         await Friend.approve_friend(user_id=token.sub, friend_id=friend_id)
@@ -41,7 +49,7 @@ async def approve_friend(friend_id: str, token: TokenData = Depends(JWTBearer())
     return Response()
 
 
-@router.patch("/friends/{friend_id}/remove", response_model=Response[SearchListView])
+@router.patch("/friends/{friend_id}/remove", response_model=Response)
 async def remove_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         await Friend.remove_friend(user_id=token.sub, friend_id=friend_id)
