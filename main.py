@@ -11,6 +11,7 @@ import voices.app.auth.controllers as auth
 import voices.app.friends.controllers as friends
 import voices.app.healthcheck.controllers as healthcheck
 import voices.app.initiatives.controllers as initiatives
+import voices.app.notifications.controllers as notifications
 import voices.app.storage.controllers as storage
 from voices.app.auth.models import User
 from voices.app.core import exceptions
@@ -71,6 +72,7 @@ app.include_router(auth.router, tags=["auth"], prefix="/api")
 app.include_router(initiatives.router, tags=["initiatives"], prefix="/api")
 app.include_router(storage.router, tags=["storage"], prefix="/api")
 app.include_router(friends.router, tags=["friends"], prefix="/api")
+app.include_router(notifications.router, tags=["notifications"], prefix="/api")
 
 
 # TODO: add sentry
