@@ -59,6 +59,8 @@ class Initiative(BaseDatetimeModel):
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
     from_date: Mapped[date] = sa.Column(sa.Date())
     to_date: Mapped[date] = sa.Column(sa.Date())
+    tags: Mapped[JSONB] = sa.Column(JSONB)
+    ar_model: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
@@ -114,11 +116,11 @@ class Initiative(BaseDatetimeModel):
         query = sa.select(selected).where((cls.city == city) & (cls.deleted_at.is_(None)))
 
         if not is_total:
-            query = query.limit(settings.DEFAULT_PAGE_SIZE)
-            query = query.options(
-                joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id)
+            query = (
+                query.limit(settings.DEFAULT_PAGE_SIZE)
+                .options(joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id))
+                .order_by(cls.id.desc())
             )
-            query = query.order_by(cls.id.desc())
 
         if search:
             query = query.where(cls.title.icontains(search))

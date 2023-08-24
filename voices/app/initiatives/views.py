@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from pydantic import Field
+from pydantic import AnyUrl, Field
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 from voices.mongo.models import SurveyType
@@ -116,8 +116,11 @@ class CommentRequestView(BaseModel):
 
 
 class CreateInitiativeVew(BaseModel):
-    images: list[str] | None
+    images: list[AnyUrl] | None
     category: Initiative.CitizenCategory
     location: GeometryPoint | None = Field(examples=[{"lat": 57.624804, "lon": 39.885072}])
     title: str
     main_text: str
+    from_date: date | None
+    to_date: date | None
+    ar_model: AnyUrl | None
