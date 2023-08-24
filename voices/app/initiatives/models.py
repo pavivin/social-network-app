@@ -142,7 +142,7 @@ class Initiative(BaseDatetimeModel):
         return result.scalars().all()
 
     @classmethod
-    async def get_favorites(cls, city: str, user_id: str, last_id: str, is_total: bool = False):
+    async def get_favorites(cls, city: str, user_id: str, last_id: str = None, is_total: bool = False):
         selected = sa.func.count(cls.id) if is_total else cls
         query = (
             sa.select(selected)
