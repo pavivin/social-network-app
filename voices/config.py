@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     FILE_ENCODING = "UTF-8"
 
-    ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4"}
+    ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4", "gltf"}
 
     FILE_MAX_SIZE_MB: int = 10
     FILE_MAX_SIZE_KB: int = 1024 * 1024 * FILE_MAX_SIZE_MB

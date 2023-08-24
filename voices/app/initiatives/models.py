@@ -45,6 +45,14 @@ class Initiative(BaseDatetimeModel):
         ACTIVE = "active"
         SOLVED = "solved"
 
+    class TagsCategory(StrEnum):
+        PROBLEM = "Новость"
+        EVENT = "Событие"
+        DECIDE_TOGETHER = "Решаем вместе"
+        SURVEY = "Опрос"
+        PROJECT = "Проект"
+        BUILDING = "Строительство"
+
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
     user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default
     city: Mapped[str] = sa.Column(sa.String(length=35))
@@ -59,8 +67,9 @@ class Initiative(BaseDatetimeModel):
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
     from_date: Mapped[date] = sa.Column(sa.Date())
     to_date: Mapped[date] = sa.Column(sa.Date())
-    tags: Mapped[JSONB] = sa.Column(JSONB)
+    tags: Mapped[JSONB] = sa.Column(JSONB, nullable=True)
     ar_model: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
+    event_direction: Mapped[str] = sa.Column(sa.String(length=100), nullable=True)
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
@@ -73,7 +82,28 @@ class Initiative(BaseDatetimeModel):
         await db_session.get().execute(query)
 
     @classmethod
-    async def create(cls, city, user_id, images, title, main_text, category, location: GeometryPoint):
+    async def create(
+        cls,
+        city,
+        user_id,
+        images,
+        title,
+        main_text,
+        category: Category,
+        location: GeometryPoint,
+        ar_model: str = None,
+        event_direction: str = None,
+        from_date: date = None,
+        to_date: date = None,
+    ):
+        tags = [cls.TagsCategory[category]]
+        if ar_model:
+            tags.append("AR")
+        if from_date and to_date:
+            tags.append("Активно")
+
+        tags = tags[:2]
+
         query = (
             sa.insert(Initiative)
             .values(
@@ -84,6 +114,9 @@ class Initiative(BaseDatetimeModel):
                 main_text=main_text,
                 category=category.value,
                 location=GeometryPoint.to_str(location),
+                ar_model=ar_model,
+                event_direction=event_direction,
+                tags=tags,
             )
             .returning(Initiative.id)
         )

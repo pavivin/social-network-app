@@ -133,6 +133,8 @@ async def create_initiative(
             location=body.location,
             title=body.title,
             main_text=body.main_text,
+            event_direction=body.event_direction,
+            ar_model=body.ar_model,
         )
 
     return Response()
