@@ -1,6 +1,7 @@
 import uuid
 
 import httpx
+from async_lru import alru_cache
 
 from voices.config import settings
 
@@ -41,6 +42,7 @@ async def login_user(user_id: uuid.UUID):
         )
 
 
+@alru_cache(maxsize=1)
 async def __login_superuser():
     async with httpx.AsyncClient() as client:
         return await client.post(
