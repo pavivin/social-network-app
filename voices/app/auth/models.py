@@ -1,6 +1,7 @@
 import uuid
 from datetime import date
 from enum import StrEnum
+from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped
@@ -16,6 +17,16 @@ class User(BaseDatetimeModel):
     class Role(StrEnum):
         CITIZEN = "citizen"
         GOVERNMENT = "government"
+
+    class City(StrEnum):
+        YAROSLAVL = "Ярославль"
+        ROSTOB = "Ростов"
+        TUTAEV = "Тутаев"
+
+        @classmethod
+        @lru_cache
+        def all(cls):
+            return [e.value for e in cls]
 
     first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True, default="Анонимный")
     last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True, default="Пользователь")
@@ -44,8 +55,12 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
-    async def insert_data(email: str, hashed_password: str) -> "User":
-        query = sa.insert(User).values(email=email, hashed_password=hashed_password).returning(User)
+    async def insert_data(email: str, hashed_password: str, first_name: str, last_name: str, city: str) -> "User":
+        query = (
+            sa.insert(User)
+            .values(email=email, hashed_password=hashed_password, first_name=first_name, last_name=last_name, city=city)
+            .returning(User)
+        )
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod

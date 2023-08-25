@@ -37,6 +37,14 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+    first_name: str | None = None
+    last_name: str | None = None
+    city: str | None = None
+
+
 class ProfileView(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
@@ -55,3 +63,7 @@ class UserView(BaseModel):
 
 class SearchListView(BaseModel):
     users: list[UserView]
+
+
+class CityListView(BaseModel):
+    cities: list[str]

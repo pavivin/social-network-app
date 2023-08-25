@@ -17,19 +17,34 @@ from voices.chat import create_user, login_user
 from voices.db.connection import Transaction
 
 from .models import User
-from .views import CheckUserLogin, ProfileView, Token, TokenData, TokenView, UserLogin
+from .views import (
+    CheckUserLogin,
+    CityListView,
+    ProfileView,
+    Token,
+    TokenData,
+    TokenView,
+    UserLogin,
+    UserRegister,
+)
 
 router = APIRouter()
 
 
 @router.post("/registration", response_model=Response[TokenView])
-async def register_user(body: UserLogin):
+async def register_user(body: UserRegister):
     async with Transaction():
         user = await User.get_by_email(body.email)
         if user:
             raise EmailTakenError
 
-        user = await User.insert_data(email=body.email, hashed_password=get_password_hash(body.password))
+        user = await User.insert_data(
+            email=body.email,
+            hashed_password=get_password_hash(body.password),
+            first_name=body.first_name,
+            last_name=body.last_name,
+            city=body.city,
+        )
 
         access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
         refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
@@ -145,3 +160,10 @@ async def get_user_profile(user_id: str):
         user = await User.get_by_id(id=user_id)
 
     return Response(payload=ProfileView.from_orm(user))
+
+
+@router.get("/cities", response_model=Response[CityListView])
+def get_cites():
+    return Response(
+        payload=CityListView(cities=User.City.all()),
+    )
