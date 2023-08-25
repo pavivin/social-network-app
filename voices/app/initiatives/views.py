@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from pydantic import Field
+from pydantic import AnyUrl, Field
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 from voices.mongo.models import SurveyType
@@ -50,6 +50,7 @@ class SurveyView(BaseModel):
 
 
 class UserView(BaseModel):
+    id: uuid.UUID | str
     first_name: str = "unknown"
     last_name: str = "user"
     image_url: str | None
@@ -69,6 +70,7 @@ class InitiativeView(BaseModel):
     reposts_count: int
     created_at: datetime
     is_liked: bool = False
+    tags: list[str] | None
 
 
 class InitiativeDetailedView(InitiativeView):
@@ -86,6 +88,9 @@ class InitiativeDetailedView(InitiativeView):
     created_at: datetime
     survey: SurveyView | None = None
     is_liked: bool = False
+    is_voted: bool = False
+    tags: list[str] | None
+    ar_model: str | None
 
 
 class InitiativeListView(BaseModel):
@@ -114,8 +119,12 @@ class CommentRequestView(BaseModel):
 
 
 class CreateInitiativeVew(BaseModel):
-    images: list[str] | None
+    images: list[AnyUrl] | None
     category: Initiative.CitizenCategory
     location: GeometryPoint | None = Field(examples=[{"lat": 57.624804, "lon": 39.885072}])
     title: str
     main_text: str
+    from_date: date | None
+    to_date: date | None
+    ar_model: AnyUrl | None
+    event_direction: str | None

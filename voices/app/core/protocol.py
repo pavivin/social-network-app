@@ -45,7 +45,8 @@ class Response(PydanticGenericModel, Generic[DataT]):
 
 
 class PaginationView(BaseModel):
-    total: int
+    count: int = 0
+    total: int = 0
     limit: int = settings.DEFAULT_PAGE_SIZE
 
 
@@ -55,6 +56,8 @@ class GeometryPoint(BaseModel):
 
     @staticmethod
     def to_str(location: dict):
+        if not location:
+            return None
         return f'POINT({location["lat"]} {location["lon"]})'
 
     @classmethod

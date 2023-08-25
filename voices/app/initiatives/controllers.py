@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
+    AlreadyVotedError,
     ObjectNotFoundError,
     ObsceneLanguageError,
     ValidationError,
@@ -19,14 +20,13 @@ from voices.app.initiatives.views import (
     CreateInitiativeVew,
     InitiativeDetailedView,
     InitiativeListView,
-    InitiativeView,
     SurveyCreate,
     SurveyVoteView,
 )
 from voices.auth.jwt_token import JWTBearer
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
-from voices.mongo.models import Survey, SurveyAnswer
+from voices.mongo.models import Survey, SurveyAnswer, SurveyType
 
 router = APIRouter()
 
@@ -52,19 +52,21 @@ async def get_feed(
             role=role,
             search=search,
         )
+        total = await Initiative.get_feed(
+            city=city, category=category, status=status, role=role, search=search, is_total=True
+        )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
             feed=response,
-            pagination=PaginationView(total=len(feed)),
+            pagination=PaginationView(count=len(feed), total=total),
         )
     )
 
@@ -75,18 +77,18 @@ async def get_favorites(
     token: TokenData | None = Depends(JWTBearer()),
 ):
     async with Transaction():
-        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)
+        total = await Initiative.get_favorites(city="test", user_id=token.sub, is_total=True)
 
     response = []
-    for initiative in feed:
+    for initiative in feed:  # TODO: rewrite
         initiative.is_liked = True
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
             feed=response,
-            pagination=PaginationView(total=len(feed)),
+            pagination=PaginationView(count=len(feed), total=total),
         )
     )
 
@@ -99,19 +101,19 @@ async def get_my(
     user_id = token.sub if token else None
     async with Transaction():
         feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
+        total = await Initiative.get_my(city="test", user_id=token.sub, is_total=True)  # TODO: get from user
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
-
-    response.append(initiative)
+        response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
             feed=response,
-            pagination=PaginationView(total=len(feed)),
+            pagination=PaginationView(count=len(feed), total=total),
         )
     )
 
@@ -131,6 +133,8 @@ async def create_initiative(
             location=body.location,
             title=body.title,
             main_text=body.main_text,
+            event_direction=body.event_direction,
+            ar_model=body.ar_model,
         )
 
     return Response()
@@ -150,10 +154,15 @@ async def get_initiative(
         liked = await InitiativeLike.get_liked(initiative_list=[initiative.id], user_id=user_id)
         set_liked = set(liked)
 
-    feed = [InitiativeView.from_orm(initiative)]
+    feed = [InitiativeDetailedView.from_orm(initiative)]
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
 
-    return Response(payload=response[0])
+    answer = response[0]  # TODO: rewrite
+
+    if answer.survey:
+        answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
+
+    return Response(payload=answer)
 
 
 @router.get(
@@ -241,8 +250,14 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
     if not survey:
         raise ObjectNotFoundError
 
+    existing_answer = await SurveyAnswer.find(
+        SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
+    ).first_or_none()
+
+    if existing_answer:  # TODO: create composite FK
+        raise AlreadyVotedError
+
     answer = SurveyAnswer(survey_id=initiative_id, user_id=token.sub, blocks=body.blocks)
-    await answer.create()
 
     survey.vote_count += 1
 
@@ -255,6 +270,10 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
                 except KeyError:
                     raise ValidationError(message="Not enough values in answer")
 
+            if survey.blocks[i].survey_type == SurveyType.CHOOSE_ONE:
+                option.value = bool(option.value)
+
+    await answer.create()
     await survey.save()
 
     return Response()

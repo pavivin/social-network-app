@@ -11,15 +11,15 @@ from voices.app.core.exceptions import JWTExpiredSignatureError, UnauthorizedErr
 from voices.config import settings
 
 
-def create_access_token(data: TokenData) -> str:
-    expire = datetime.now() + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRES)
+def create_access_token(data: TokenData) -> tuple[str, datetime]:
+    expire = datetime.utcnow() + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRES)
     data.exp = expire
     encoded_jwt = jwt.encode(dict(data), settings.AUTH_PRIVATE_KEY_DATA, algorithm=settings.AUTH_ALGORITHM)
-    return encoded_jwt
+    return encoded_jwt, expire
 
 
 def create_refresh_token(data: TokenData) -> str:
-    expire = datetime.now() + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRES)
+    expire = datetime.utcnow() + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRES)
     data.exp = expire
     encoded_jwt = jwt.encode(dict(data), settings.AUTH_PRIVATE_KEY_DATA, algorithm=settings.AUTH_ALGORITHM)
     return encoded_jwt
@@ -31,7 +31,7 @@ def decode_token(token: str) -> TokenData:
         if not payload:
             raise UnauthorizedError
         token_data = TokenData(**payload)
-        if datetime.now() > token_data.exp.replace(tzinfo=None):
+        if datetime.utcnow() > token_data.exp.replace(tzinfo=None):
             raise UnauthorizedError
     except ExpiredSignatureError as e:
         raise JWTExpiredSignatureError from e

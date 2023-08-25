@@ -86,7 +86,8 @@ async def uvicorn_base_exception_handler(request: Request, exc: Exception):
             message=error.message,
             body=error.payload,
             exception_class=error.__class__.__name__,
-        ).dict()
+        ).dict(),
+        status_code=error.status_code,
     )
 
 
@@ -100,7 +101,8 @@ async def unicorn_api_exception_handler(request: Request, exc: exceptions.ApiExc
             message=exc.message,
             body=exc.payload,
             exception_class=exc._type(),
-        ).dict()
+        ).dict(),
+        status_code=exc.status_code,
     )
 
 
@@ -114,7 +116,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             message=error.message,
             body=error.payload,
             exception_class=error._type(),
-        ).dict()
+        ).dict(),
+        status_code=error.status_code,
     )
 
 
@@ -128,7 +131,8 @@ async def validation_http_exception_handler(request: Request, exc: HTTPException
             message=error.message,
             body=error.payload,
             exception_class=error._type(),
-        ).dict()
+        ).dict(),
+        status_code=error.status_code,
     )
 
 

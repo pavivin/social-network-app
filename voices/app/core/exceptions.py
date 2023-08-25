@@ -43,6 +43,11 @@ class BadRequestError(ApiException):
     message = "Bad Request"
 
 
+class AlreadyVotedError(ApiException):
+    status_code = 400
+    message = "Already voted initiative"
+
+
 class ObsceneLanguageError(ApiException):
     status_code = 400
     message = "Obscene language found"

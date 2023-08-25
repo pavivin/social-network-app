@@ -3,12 +3,11 @@ from enum import StrEnum
 
 from beanie import Document
 from pydantic import Field
-
-from voices.app.initiatives.models import Initiative
+from uuid_extensions import uuid7
 
 
 class BaseDocument(Document):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    id: uuid.UUID = Field(default_factory=uuid7)
 
 
 class SurveyType(StrEnum):
@@ -54,16 +53,15 @@ class Survey(BaseDocument):
         response = []
         for initiative in feed:
             initiative.is_liked = initiative.id in set_liked if set_liked else True
-            if initiative.category == Initiative.Category.SURVEY:  # TODO: optimize mongo queries
-                initiative.survey = await Survey.get(initiative.id)
-                if token:
-                    answer = await SurveyAnswer.find(
-                        SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative.id
-                    ).first_or_none()
-                    if answer:
-                        for i, item in enumerate(answer.blocks):
-                            for j, choose in enumerate(item.answer):
-                                initiative.survey.blocks[i].answer[j].user_value = choose.value
+            initiative.survey = await Survey.get(initiative.id)
+            if token:
+                answer = await SurveyAnswer.find(
+                    SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative.id
+                ).first_or_none()
+                if answer:
+                    for i, item in enumerate(answer.blocks):
+                        for j, choose in enumerate(item.answer):
+                            initiative.survey.blocks[i].answer[j].user_value = choose.value
 
             response.append(initiative)
         return response

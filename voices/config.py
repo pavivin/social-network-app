@@ -49,10 +49,15 @@ class Settings(BaseSettings):
     # FIREBASE
     FIREBASE_SECRETS = "./voices_firebase_secrets.json"
 
-    ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4"}
+    ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4", "gltf"}
 
     FILE_MAX_SIZE_MB: int = 10
     FILE_MAX_SIZE_KB: int = 1024 * 1024 * FILE_MAX_SIZE_MB
+
+    ROCKETCHAT_WEBSOCKET: str
+    ROCKETCHAT_USER: str
+    ROCKETCHAT_PASSWORD: str
+    ROCKETCHAT_URL: str
 
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):

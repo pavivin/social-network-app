@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, datetime
 
 from pydantic import AnyUrl, EmailStr
@@ -10,6 +11,14 @@ from .models import User
 class Token(BaseModel):
     access_token: str
     refresh_token: str
+
+
+class TokenView(BaseModel):
+    access_token: str
+    refresh_token: str
+    rocketchat_user_id: str
+    rocketchat_auth_token: str
+    exp: datetime
 
 
 class TokenData(BaseModel):
@@ -38,9 +47,10 @@ class ProfileView(BaseModel):
 
 
 class UserView(BaseModel):
+    id: uuid.UUID | str
     first_name: str = "unknown"
     last_name: str = "user"
-    email: EmailStr
+    image_url: str | None
 
 
 class SearchListView(BaseModel):

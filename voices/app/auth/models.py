@@ -17,11 +17,15 @@ class User(BaseDatetimeModel):
         CITIZEN = "citizen"
         GOVERNMENT = "government"
 
-    first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
-    last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
+    first_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True, default="Анонимный")
+    last_name: Mapped[str] = sa.Column(sa.String(length=50), nullable=True, default="Пользователь")
     email: Mapped[str] = sa.Column(sa.String(length=254), unique=True, index=True, nullable=False)
     role: Mapped[str] = sa.Column(sa.String(length=count_max_length(Role)), nullable=False, server_default=Role.CITIZEN)
-    image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
+    image_url: Mapped[str] = sa.Column(
+        sa.String(length=2000),
+        nullable=True,
+        default="http://89.108.65.101:5000/api/storage/064e74c0198f7159800002e35c77df4a.jpg",
+    )
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     district: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
@@ -45,24 +49,23 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def update_profile(unset: dict):
-        query = sa.update(User).values(**unset).returning(User)
+    async def update_profile(unset: dict, user_id: str):
+        query = sa.update(User).values(**unset).where(User.id == user_id).returning(User)
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def search_by_pattern(pattern: str):
+    async def search_by_pattern(pattern: str, last_id: str | None = None, is_total: bool = False):
         normalized_pattern = pattern.lower()
-        query = sa.select(User).where(
+        selected = sa.func.count(User.id) if is_total else User
+        query = sa.select(selected).where(
             sa.or_(
                 sa.func.lower(User.first_name).contains(normalized_pattern),
                 sa.func.lower(User.last_name).contains(normalized_pattern),
             )
         )
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result
-
-    @classmethod
-    async def get_friends(cls, user_id: str):
-        query = sa.select(User).where()
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result
+        if last_id:
+            query = query.where(User.id < last_id)
+        result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
+        return result.scalars().all()
