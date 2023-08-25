@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     NORMALIZED_OBSCENE_WORDS_FILE = "normalized_words.txt"
 
     FILE_ENCODING = "UTF-8"
+    # FIREBASE
+    FIREBASE_SECRETS = "./voices_firebase_secrets.json"
 
     ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4", "gltf"}
 

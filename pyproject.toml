@@ -43,6 +43,7 @@ nltk = "^3.8.1"
 aiofiles = "^23.1.0"
 beanie = "^1.20.0"
 pillow = "^10.0.0"
+firebase-admin = "^6.2.0"
 uuid7 = "^0.1.0"
 
 
