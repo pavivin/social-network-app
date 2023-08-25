@@ -40,6 +40,41 @@ services:
     command:
       - python
       - main.py
+  redis:
+    image: 'bitnami/redis:6.2.13'
+    expose:
+      - 6379
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - voices-dev
+  worker:
+    image: startupcifra/vizme-backend:${IMAGE_TAG}
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+      - REDIS_URL=redis://redis:6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BACKEND_URL=redis://redis:6379/1
+    depends_on:
+      - db
+    networks:
+      - voices-dev
+    volumes:
+      - static:/app/data
+    command:
+      - celery
+      - "-A"
+      - vizme.broker
+      - worker
+      - "-l"
+      - INFO
   mongodb:
     image: bitnami/mongodb:5.0
     volumes:
