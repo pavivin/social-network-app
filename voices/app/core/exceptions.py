@@ -48,6 +48,11 @@ class AlreadyVotedError(ApiException):
     message = "Already voted initiative"
 
 
+class FriendAlreadyAddedError(ApiException):
+    status_code = 400
+    message = "Already added friend"
+
+
 class ObsceneLanguageError(ApiException):
     status_code = 400
     message = "Obscene language found"

@@ -35,7 +35,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True),
         sa.Column("first_name", sa.VARCHAR(length=50), nullable=True),
         sa.Column("last_name", sa.VARCHAR(length=50), nullable=True),
-        sa.Column("type", sa.String(length=12), nullable=False),
+        sa.Column("type", sa.String(length=13), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

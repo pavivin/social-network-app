@@ -23,7 +23,7 @@ class TokenView(BaseModel):
 
 class TokenData(BaseModel):
     sub: str
-    email: EmailStr
+    email: EmailStr | None
     role: User.Role
     exp: datetime | None
 

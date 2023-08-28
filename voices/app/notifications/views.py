@@ -1,8 +1,10 @@
+from datetime import datetime
 from uuid import UUID
-from datetime import date, datetime
+
 from voices.app.core.protocol import BaseModel
 
-class NotificationOut(BaseModel):
+
+class NotificationView(BaseModel):
     id: UUID
     text: str
     avatar_url: str | None
@@ -10,6 +12,11 @@ class NotificationOut(BaseModel):
     status: str
     first_name: str
     last_name: str
+
+
+class NotificationList(BaseModel):
+    notifications: list[NotificationView]
+
 
 class FirebaseAdd(BaseModel):
     firebase_token: str

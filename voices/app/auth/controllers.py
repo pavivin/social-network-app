@@ -46,8 +46,8 @@ async def register_user(body: UserRegister):
             city=body.city,
         )
 
-        access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
-        refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=body.email, role=user.role))
+        access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
+        refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
         await create_user(user_id=user.id, email=user.email)
         rocketchat_response = await login_user(user_id=user.id)
@@ -84,8 +84,8 @@ async def authenticate_user(body: UserLogin):
     if not verify_password(body.password, user.hashed_password):
         raise PasswordMatchError
 
-    access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
     rocketchat_response = await login_user(user_id=user.id)
     if rocketchat_response.status_code != 200:
@@ -114,8 +114,8 @@ async def post_refresh_token(body: Token):
     if not user:
         raise UserNotFoundError
 
-    access_token, exp = create_access_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
-    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, email=user.email, role=user.role))
+    access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
+    refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
     rocketchat_response = await login_user(user_id=user.id)
 

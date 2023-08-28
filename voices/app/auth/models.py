@@ -4,7 +4,7 @@ from enum import StrEnum
 from functools import lru_cache
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, load_only
 
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
@@ -44,7 +44,11 @@ class User(BaseDatetimeModel):
 
     @staticmethod
     async def get_by_email(email: str):
-        query = sa.select(User).where(User.email == email)
+        query = (
+            sa.select(User)
+            .where(User.email == email)
+            .options(load_only(User.id, User.email, User.role, User.hashed_password))
+        )
         result = (await db_session.get().execute(query)).scalars().first()
         return result
 

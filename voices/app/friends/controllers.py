@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.exc import IntegrityError
 
 from voices.app.auth.views import TokenData
+from voices.app.core.exceptions import FriendAlreadyAddedError
 from voices.app.core.protocol import Response
 from voices.app.friends.models import Friend, User
 from voices.app.friends.views import FriendListView, PaginationView
 from voices.auth.jwt_token import JWTBearer
+from voices.broker.tasks.notification import EventName, send_notification
 from voices.db.connection import Transaction
 
 router = APIRouter()
@@ -22,7 +25,7 @@ async def search_by_pattern(
             users = [user.friend for user in users]
             total = await Friend.get_friends(user_id=token.sub, is_total=True)
         else:
-            users = await User.search_by_pattern(pattern=pattern, last_id=last_id)
+            users = await User.search_by_pattern(pattern=pattern, last_id=last_id)  # TODO: return total in the same def
             total = await User.search_by_pattern(pattern=pattern, is_total=True)
 
     return Response(
@@ -36,7 +39,15 @@ async def search_by_pattern(
 @router.patch("/friends/{friend_id}/add", response_model=Response)
 async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
-        await Friend.add_friend(user_id=token.sub, friend_id=friend_id)
+        try:
+            await Friend.add_friend(user_id=token.sub, friend_id=friend_id)  # TODO: add 400
+        except IntegrityError:
+            raise FriendAlreadyAddedError
+
+        send_notification.apply_async(
+            kwargs=dict(user_id_send=token.sub, user_id_get=friend_id, status=EventName.REQUEST_FRENDS),
+            retry=False,
+        )
 
     return Response()
 
