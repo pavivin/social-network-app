@@ -112,7 +112,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-voices_firebase_secrets.json
 
 # Spyder project settings
 .spyderproject
