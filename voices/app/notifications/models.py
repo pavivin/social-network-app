@@ -1,7 +1,6 @@
 import uuid
 
 import sqlalchemy as sa
-from uuid_extensions import uuid7
 
 from voices.db.connection import db_session
 from voices.models import BaseModel
@@ -15,7 +14,14 @@ class NotificationStatus:
 class Notification(BaseModel):
     __tablename__ = "notifications"
     owner_id = sa.Column(
-        sa.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, default=uuid7
+        sa.UUID(as_uuid=True),
+        sa.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = sa.Column(
+        sa.UUID(as_uuid=True),
+        sa.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
     )
     text = sa.Column("text", sa.VARCHAR(350), nullable=True)
     status = sa.Column(sa.String(length=8), server_default=NotificationStatus.UNREADED, nullable=False)
@@ -33,7 +39,9 @@ class Notification(BaseModel):
         await db_session.get().execute(query)
 
     @classmethod
-    async def create(cls, owner_id: uuid.UUID, text: str, avatar_url: str, first_name: str, last_name: str, type: str):
+    async def create(
+        cls, owner_id: uuid.UUID, text: str, avatar_url: str, first_name: str, last_name: str, type: str, user_id: str
+    ):
         query = sa.insert(Notification).values(
             owner_id=owner_id,
             text=text,
@@ -41,6 +49,7 @@ class Notification(BaseModel):
             first_name=first_name,
             last_name=last_name,
             type=type,
+            user_id=user_id,
         )
         await db_session.get().execute(query)
 

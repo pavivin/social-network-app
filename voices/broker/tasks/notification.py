@@ -52,6 +52,7 @@ async def firebase_notifications(user_id_send: str, user_id_get: str, status: Ev
             first_name=user.first_name,
             last_name=user.last_name,
             type=status,
+            user_id=user_id_send,
         )
         for token in tokens:
             message = messaging.Message(

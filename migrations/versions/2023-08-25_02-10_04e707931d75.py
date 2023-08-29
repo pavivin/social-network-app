@@ -29,6 +29,7 @@ def upgrade() -> None:
     op.create_table(
         "notifications",
         sa.Column("owner_id", sa.UUID(), nullable=False),
+        sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("text", sa.VARCHAR(length=350), nullable=True),
         sa.Column("status", sa.String(length=8), server_default="UNREADED", nullable=False),
         sa.Column("avatar", sa.VARCHAR(length=500), nullable=True),
@@ -38,6 +39,7 @@ def upgrade() -> None:
         sa.Column("type", sa.String(length=13), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
     )
