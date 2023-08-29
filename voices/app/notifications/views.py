@@ -12,6 +12,7 @@ class NotificationView(BaseModel):
     status: str
     first_name: str
     last_name: str
+    user_id: UUID
 
 
 class NotificationList(BaseModel):
