@@ -32,7 +32,7 @@ status_text = {
 
 async def firebase_notifications(user_id_send: str, user_id_get: str, status: EventName):
     async with Transaction():
-        tokens = await FirebaseApp.get_tokens(user_id_send)
+        tokens = await FirebaseApp.get_tokens(user_id_get)
 
         user: User = await User.get_by_id(user_id_send)
         text = status_text[status]

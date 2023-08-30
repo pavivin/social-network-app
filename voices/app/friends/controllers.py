@@ -40,7 +40,7 @@ async def search_by_pattern(
 async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         try:
-            await Friend.add_friend(user_id=token.sub, friend_id=friend_id)  # TODO: add 400
+            await Friend.add_friend(user_id=token.sub, friend_id=friend_id)
         except IntegrityError:
             raise FriendAlreadyAddedError
 
