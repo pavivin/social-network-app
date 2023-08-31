@@ -205,19 +205,23 @@ async def post_comment(
         raise ObsceneLanguageError
 
     async with Transaction():
-        await Initiative.get(initiative_id)
+        initiative = await Initiative.get(initiative_id)
         await Comment.post_comment(
             main_text=body.main_text, initiative_id=initiative_id, reply_id=reply_id, user_id=token.sub
         )
         await Initiative.increment_comments_count(initiative_id=initiative_id)
 
+        notification_status = EventName.ANSWERED if reply_id else EventName.COMMENT
         if reply_id:
             comment: Comment = Comment.get(reply_id)
+            user_id_get = comment.user_id
+        else:
+            user_id_get = initiative.user_id
 
-            send_notification.apply_async(
-                kwargs=dict(user_id_send=token.sub, user_id_get=comment.user_id, status=EventName.ACCEPT_FRENDS),
-                retry=False,
-            )
+    send_notification.apply_async(
+        kwargs=dict(user_id_send=token.sub, user_id_get=user_id_get, status=notification_status),
+        retry=False,
+    )
 
     return Response()
 
@@ -225,9 +229,14 @@ async def post_comment(
 @router.post("/initiatives/{initiative_id}/like", response_model=Response[CommentReplyView])
 async def post_like(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
-        await Initiative.get(initiative_id)
+        initiative = await Initiative.get(initiative_id)
         await InitiativeLike.post_like(initiative_id=initiative_id, user_id=token.sub)
         await Initiative.update_likes_count(initiative_id=initiative_id, count=1)
+
+    send_notification.apply_async(
+        kwargs=dict(user_id_send=token.sub, user_id_get=initiative.user_id, status=EventName.LIKE),
+        retry=False,
+    )
 
     return Response()
 
