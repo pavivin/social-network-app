@@ -24,6 +24,7 @@ from voices.app.initiatives.views import (
     SurveyVoteView,
 )
 from voices.auth.jwt_token import JWTBearer
+from voices.broker.tasks.notification import EventName, send_notification
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
 from voices.mongo.models import Survey, SurveyAnswer, SurveyType
@@ -97,8 +98,9 @@ async def get_favorites(
 async def get_my(
     last_id: uuid.UUID | None = None,
     token: TokenData | None = Depends(JWTBearer()),
+    user_id: uuid.UUID | None = None,
 ):
-    user_id = token.sub if token else None
+    user_id = user_id or token.sub
     async with Transaction():
         feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
         total = await Initiative.get_my(city="test", user_id=token.sub, is_total=True)  # TODO: get from user
@@ -208,6 +210,14 @@ async def post_comment(
             main_text=body.main_text, initiative_id=initiative_id, reply_id=reply_id, user_id=token.sub
         )
         await Initiative.increment_comments_count(initiative_id=initiative_id)
+
+        if reply_id:
+            comment: Comment = Comment.get(reply_id)
+
+            send_notification.apply_async(
+                kwargs=dict(user_id_send=token.sub, user_id_get=comment.user_id, status=EventName.ACCEPT_FRENDS),
+                retry=False,
+            )
 
     return Response()
 

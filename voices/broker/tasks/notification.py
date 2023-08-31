@@ -54,14 +54,13 @@ async def firebase_notifications(user_id_send: str, user_id_get: str, status: Ev
             type=status,
             user_id=user_id_send,
         )
+        response = None
         for token in tokens:
             message = messaging.Message(
                 data=data_send,
                 token=token,
             )
             response = messaging.send(message, app=app_firebase)
-        else:
-            response = None
     return response
 
 

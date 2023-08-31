@@ -44,10 +44,10 @@ async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
         except IntegrityError:
             raise FriendAlreadyAddedError
 
-        send_notification.apply_async(
-            kwargs=dict(user_id_send=token.sub, user_id_get=friend_id, status=EventName.REQUEST_FRENDS),
-            retry=False,
-        )
+    send_notification.apply_async(
+        kwargs=dict(user_id_send=token.sub, user_id_get=friend_id, status=EventName.REQUEST_FRENDS),
+        retry=False,
+    )
 
     return Response()
 
@@ -56,6 +56,11 @@ async def add_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
 async def approve_friend(friend_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         await Friend.approve_friend(user_id=token.sub, friend_id=friend_id)
+
+    send_notification.apply_async(
+        kwargs=dict(user_id_send=token.sub, user_id_get=friend_id, status=EventName.ACCEPT_FRENDS),
+        retry=False,
+    )
 
     return Response()
 

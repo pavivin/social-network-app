@@ -46,7 +46,7 @@ class UserRegister(BaseModel):
 
 
 class ProfileView(BaseModel):
-    id: uuid.UUID | str
+    id: uuid.UUID | str = None
     first_name: str | None = None
     last_name: str | None = None
     image_url: AnyUrl | None = None
