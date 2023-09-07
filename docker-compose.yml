@@ -71,7 +71,7 @@ services:
     command:
       - celery
       - "-A"
-      - vizme.broker
+      - voices.broker
       - worker
       - "-l"
       - INFO
