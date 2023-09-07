@@ -50,7 +50,7 @@ services:
     networks:
       - voices-dev
   worker:
-    image: startupcifra/vizme-backend:${IMAGE_TAG}
+    image: startupcifra/voices-backend:${IMAGE_TAG}
     env_file:
       - .env
     environment:
