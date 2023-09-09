@@ -213,7 +213,7 @@ async def post_comment(
 
         notification_status = EventName.ANSWERED if reply_id else EventName.COMMENT
         if reply_id:
-            comment: Comment = Comment.get(reply_id)
+            comment: Comment = await Comment.get(reply_id)
             user_id_get = comment.user_id
         else:
             user_id_get = initiative.user_id
