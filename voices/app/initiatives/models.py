@@ -13,6 +13,7 @@ from voices.app.core.exceptions import (
     AlreadyLikedError,
     AlreadyUnlikedError,
     NotFoundError,
+    ObjectNotFoundError,
 )
 from voices.app.core.protocol import GeometryPoint
 from voices.config import settings
@@ -225,6 +226,15 @@ class Comment(BaseDatetimeModel):
     initiative: Mapped[Initiative] = relationship("Initiative", foreign_keys="Comment.initiative_id")
     parent_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("comments.id"), nullable=True)
     replies = relationship("Comment", foreign_keys="Comment.parent_id", uselist=True, lazy="joined")
+
+    @staticmethod
+    async def get(value):
+        query = sa.select(Comment).where(Comment.id == value)
+        try:
+            result = (await db_session.get().execute(query)).unique().scalar_one()
+            return result
+        except Exception as e:
+            raise ObjectNotFoundError from e
 
     @classmethod
     async def post_comment(
