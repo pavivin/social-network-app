@@ -10,8 +10,8 @@ class NotificationView(BaseModel):
     avatar_url: str | None
     created_at: datetime
     status: str
-    first_name: str
-    last_name: str
+    first_name: str = "unknown"
+    last_name: str = "user"
     user_id: UUID
 
 
