@@ -13,5 +13,5 @@ services:
       - .:/app
 
 networks:
-  tavrida:
+  voices-dev:
     external: true
