@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
@@ -44,7 +45,9 @@ async def get_feed(
     user_id = token.sub if token else None
     async with Transaction():
         # TODO: city
-        user = await User.get_by_id(token.sub)
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or "Ярославль"
         feed = await Initiative.get_feed(
             city=user.city or city,
             category=category,
@@ -78,8 +81,11 @@ async def get_favorites(
     token: TokenData | None = Depends(JWTBearer()),
 ):
     async with Transaction():
-        user = await User.get_by_id(token.sub)
-        city = user.city or "Ярославль"
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or "Ярославль"
+        else:
+            city = "Ярославль"
         feed = await Initiative.get_favorites(city=city, last_id=last_id, user_id=token.sub)
         total = await Initiative.get_favorites(city=city, user_id=token.sub, is_total=True)
 
@@ -104,8 +110,11 @@ async def get_my(
 ):
     user_id = user_id or token.sub
     async with Transaction():
-        user = await User.get_by_id(token.sub)
-        city = user.city or "Ярославль"
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or "Ярославль"
+        else:
+            city = "Ярославль"
         feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)  # TODO: get from user
         total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)  # TODO: get from user
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
@@ -130,8 +139,11 @@ async def create_initiative(
     token: TokenData = Depends(JWTBearer()),
 ):
     async with Transaction():
-        user = await User.get(token.sub)
-        city = user.city or "Ярославль"
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or "Ярославль"
+        else:
+            city = "Ярославль"
         await Initiative.create(
             city=city,
             user_id=user.id,
