@@ -13,6 +13,8 @@ class NotificationView(BaseModel):
     first_name: str = "unknown"
     last_name: str = "user"
     user_id: UUID
+    initiative_id: UUID | None
+    initiative_image: str | None
 
 
 class NotificationList(BaseModel):

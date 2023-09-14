@@ -49,7 +49,7 @@ async def get_feed(
             user = await User.get_by_id(token.sub)
             city = user.city or "Ярославль"
         feed = await Initiative.get_feed(
-            city=user.city or city,
+            city=city,
             category=category,
             last_id=last_id,
             status=status,
@@ -236,7 +236,13 @@ async def post_comment(
             user_id_get = initiative.user_id
 
     send_notification.apply_async(
-        kwargs=dict(user_id_send=token.sub, user_id_get=user_id_get, status=notification_status),
+        kwargs=dict(
+            user_id_send=token.sub,
+            user_id_get=user_id_get,
+            status=notification_status,
+            initiative_image=initiative.images[0],
+            initiative_id=initiative.id,
+        ),
         retry=False,
     )
 
@@ -251,7 +257,13 @@ async def post_like(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBear
         await Initiative.update_likes_count(initiative_id=initiative_id, count=1)
 
     send_notification.apply_async(
-        kwargs=dict(user_id_send=token.sub, user_id_get=initiative.user_id, status=EventName.LIKE),
+        kwargs=dict(
+            user_id_send=token.sub,
+            user_id_get=initiative.user_id,
+            status=EventName.LIKE,
+            initiative_image=initiative.images[0],
+            initiative_id=initiative.id,
+        ),
         retry=False,
     )
 

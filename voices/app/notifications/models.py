@@ -23,13 +23,15 @@ class Notification(BaseModel):
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-    text = sa.Column("text", sa.VARCHAR(350), nullable=True)
+    text = sa.Column(sa.VARCHAR(350), nullable=True)
     status = sa.Column(sa.String(length=8), server_default=NotificationStatus.UNREADED, nullable=False)
     avatar_url = sa.Column("avatar", sa.VARCHAR(500), nullable=True)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
-    first_name = sa.Column("first_name", sa.VARCHAR(50), nullable=True)
-    last_name = sa.Column("last_name", sa.VARCHAR(50), nullable=True)
+    first_name = sa.Column(sa.VARCHAR(50), nullable=True)
+    last_name = sa.Column(sa.VARCHAR(50), nullable=True)
     type = sa.Column(sa.String(length=13), nullable=False)  # TODO: to number
+    initiative_id = sa.Column(sa.UUID(as_uuid=True), sa.ForeignKey("initiatives.id", ondelete="CASCADE"), nullable=True)
+    initiative_image = sa.Column(sa.VARCHAR(500), nullable=True)
 
     @classmethod
     async def read_notification(cls, notification_id: uuid.UUID):
@@ -40,7 +42,16 @@ class Notification(BaseModel):
 
     @classmethod
     async def create(
-        cls, owner_id: uuid.UUID, text: str, avatar_url: str, first_name: str, last_name: str, type: str, user_id: str
+        cls,
+        owner_id: uuid.UUID,
+        text: str,
+        avatar_url: str,
+        first_name: str,
+        last_name: str,
+        type: str,
+        user_id: str,
+        initiative_id=None,
+        initiative_image=None,
     ):
         query = sa.insert(Notification).values(
             owner_id=owner_id,
@@ -50,6 +61,8 @@ class Notification(BaseModel):
             last_name=last_name,
             type=type,
             user_id=user_id,
+            initiative_id=initiative_id,
+            initiative_image=initiative_image,
         )
         await db_session.get().execute(query)
 

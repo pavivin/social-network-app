@@ -30,7 +30,9 @@ status_text = {
 }
 
 
-async def firebase_notifications(user_id_send: str, user_id_get: str, status: EventName):
+async def firebase_notifications(
+    user_id_send: str, user_id_get: str, status: EventName, initiative_image: str = None, initiative_id: str = None
+):
     async with Transaction():
         tokens = await FirebaseApp.get_tokens(user_id_get)
 
@@ -39,11 +41,14 @@ async def firebase_notifications(user_id_send: str, user_id_get: str, status: Ev
         time = datetime.now(tz=timezone.utc)
         data_send = {
             "text": text,
-            "picture": user.image_url,
+            "picture": user.image_url,  # TODO: remove
+            "avatar_url": user.image_url,
             "time": time.isoformat(),
             "first_name": user.first_name,
             "last_name": user.last_name,
             "type": status,
+            "initiative_image": initiative_image,
+            "initiative_id": initiative_id,
         }
         await Notification.create(
             owner_id=user_id_get,
@@ -53,6 +58,8 @@ async def firebase_notifications(user_id_send: str, user_id_get: str, status: Ev
             last_name=user.last_name,
             type=status,
             user_id=user_id_send,
+            initiative_image=initiative_image,
+            initiative_id=initiative_id,
         )
         response = None
         for token in tokens:
@@ -61,14 +68,19 @@ async def firebase_notifications(user_id_send: str, user_id_get: str, status: Ev
                 token=token,
             )
             response = messaging.send(message, app=app_firebase)
-            print("Response", response)
-        else:
-            print("No Response")
     return response
 
 
 @app.task(name="send_notification")
-def send_notification(user_id_send: str, user_id_get: str, status: str) -> int:
+def send_notification(
+    user_id_send: str, user_id_get: str, status: str, initiative_id=None, initiative_image=None
+) -> int:
     return loop.run_until_complete(
-        firebase_notifications(user_id_send=user_id_send, user_id_get=user_id_get, status=status)
+        firebase_notifications(
+            user_id_send=user_id_send,
+            user_id_get=user_id_get,
+            status=status,
+            initiative_image=initiative_image,
+            initiative_id=initiative_id,
+        )
     )
