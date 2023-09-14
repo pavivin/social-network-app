@@ -28,6 +28,7 @@ argon2-cffi = "^21.3.0"
 coverage = "^7.2.2"
 pillow = "^10.0.0"
 uuid7 = "^0.1.0"
+passlib = "^1.7.4"
 
 [tool.poetry.dev-dependencies]
 black = "^23.1.0"
