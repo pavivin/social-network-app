@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
-
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
@@ -38,15 +37,16 @@ async def get_feed(
     role: User.Role | None = None,
     last_id: uuid.UUID | None = None,
     status: Initiative.Status | None = None,
-    city: str = "test",
+    city: str = "Ярославль",
     search: str | None = None,
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
     async with Transaction():
         # TODO: city
+        user = await User.get_by_id(token.sub)
         feed = await Initiative.get_feed(
-            city=city,
+            city=user.city or city,
             category=category,
             last_id=last_id,
             status=status,
@@ -78,8 +78,10 @@ async def get_favorites(
     token: TokenData | None = Depends(JWTBearer()),
 ):
     async with Transaction():
-        feed = await Initiative.get_favorites(city="test", last_id=last_id, user_id=token.sub)
-        total = await Initiative.get_favorites(city="test", user_id=token.sub, is_total=True)
+        user = await User.get_by_id(token.sub)
+        city = user.city or "Ярославль"
+        feed = await Initiative.get_favorites(city=city, last_id=last_id, user_id=token.sub)
+        total = await Initiative.get_favorites(city=city, user_id=token.sub, is_total=True)
 
     response = []
     for initiative in feed:  # TODO: rewrite
@@ -102,8 +104,10 @@ async def get_my(
 ):
     user_id = user_id or token.sub
     async with Transaction():
-        feed = await Initiative.get_my(city="test", last_id=last_id, user_id=token.sub)  # TODO: get from user
-        total = await Initiative.get_my(city="test", user_id=token.sub, is_total=True)  # TODO: get from user
+        user = await User.get_by_id(token.sub)
+        city = user.city or "Ярославль"
+        feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)  # TODO: get from user
+        total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)  # TODO: get from user
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
@@ -127,8 +131,9 @@ async def create_initiative(
 ):
     async with Transaction():
         user = await User.get(token.sub)
+        city = user.city or "Ярославль"
         await Initiative.create(
-            city="test",
+            city=city,
             user_id=user.id,
             images=body.images,
             category=body.category,
