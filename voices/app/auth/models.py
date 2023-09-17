@@ -5,7 +5,6 @@ from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, load_only
-
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
@@ -74,14 +73,16 @@ class User(BaseDatetimeModel):
 
     @staticmethod
     async def search_by_pattern(pattern: str, last_id: str | None = None, is_total: bool = False):
-        normalized_pattern = pattern.lower()
         selected = sa.func.count(User.id) if is_total else User
-        query = sa.select(selected).where(
-            sa.or_(
-                sa.func.lower(User.first_name).contains(normalized_pattern),
-                sa.func.lower(User.last_name).contains(normalized_pattern),
+        query = sa.select(selected)
+        if pattern:
+            normalized_pattern = pattern.lower()
+            query = query.where(
+                sa.or_(
+                    sa.func.lower(User.first_name).contains(normalized_pattern),
+                    sa.func.lower(User.last_name).contains(normalized_pattern),
+                )
             )
-        )
         if last_id:
             query = query.where(User.id < last_id)
         result = await db_session.get().execute(query)

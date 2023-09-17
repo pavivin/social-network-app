@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.exc import IntegrityError
-
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import FriendAlreadyAddedError
 from voices.app.core.protocol import Response
@@ -13,6 +12,24 @@ from voices.db.connection import Transaction
 router = APIRouter()
 
 
+@router.get("/users", response_model=Response[FriendListView])
+async def get_users(
+    pattern: str | None = None,
+    last_id: str | None = None,
+    token: TokenData = Depends(JWTBearer()),
+):
+    async with Transaction():
+        users = await User.search_by_pattern(pattern=pattern, last_id=last_id)  # TODO: return total in the same def
+        total = await User.search_by_pattern(pattern=pattern, is_total=True)
+
+    return Response(
+        payload=FriendListView(
+            users=users,
+            pagination=PaginationView(count=len(users), total=total),
+        )
+    )
+
+
 @router.get("/friends", response_model=Response[FriendListView])
 async def search_by_pattern(
     pattern: str | None = Query(default=None, min_length=1),
@@ -20,13 +37,9 @@ async def search_by_pattern(
     token: TokenData = Depends(JWTBearer()),
 ):
     async with Transaction():
-        if not pattern:
-            users = await Friend.get_friends(user_id=token.sub, last_id=last_id)
-            users = [user.friend for user in users]
-            total = await Friend.get_friends(user_id=token.sub, is_total=True)
-        else:
-            users = await User.search_by_pattern(pattern=pattern, last_id=last_id)  # TODO: return total in the same def
-            total = await User.search_by_pattern(pattern=pattern, is_total=True)
+        users = await Friend.get_friends(user_id=token.sub, last_id=last_id, pattern=pattern)
+        users = [user.friend for user in users]
+        total = await Friend.get_friends(user_id=token.sub, is_total=True)
 
     return Response(
         payload=FriendListView(

@@ -7,7 +7,6 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
-
 from voices.app.auth.models import User
 from voices.app.core.exceptions import (
     AlreadyLikedError,
@@ -145,16 +144,18 @@ class Initiative(BaseDatetimeModel):
         role: User.Role | None = None,
         search: str | None = None,
         is_total: bool = False,
+        is_maps: bool = False,
     ):
         selected = sa.func.count(cls.id) if is_total else cls
         query = sa.select(selected).where((cls.city == city) & (cls.deleted_at.is_(None)))
 
         if not is_total:
-            query = (
-                query.limit(settings.DEFAULT_PAGE_SIZE)
-                .options(joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id))
-                .order_by(cls.id.desc())
-            )
+            query = query.options(
+                joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id)
+            ).order_by(cls.id.desc())
+
+        if is_maps:
+            query = query.limit(settings.DEFAULT_PAGE_SIZE)
 
         if search:
             query = query.where(cls.title.icontains(search))

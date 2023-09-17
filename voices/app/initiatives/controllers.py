@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
-
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
@@ -55,6 +54,48 @@ async def get_feed(
             status=status,
             role=role,
             search=search,
+        )
+        total = await Initiative.get_feed(
+            city=city, category=category, status=status, role=role, search=search, is_total=True
+        )
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
+
+    response = []
+    for initiative in feed:
+        initiative.is_liked = initiative.id in set_liked
+        response.append(initiative)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=response,
+            pagination=PaginationView(count=len(feed), total=total),
+        )
+    )
+
+
+@router.get("/initiatives/maps", response_model=Response[InitiativeListView])
+async def get_feed_maps(
+    category: Initiative.Category | None = None,
+    role: User.Role | None = None,
+    status: Initiative.Status | None = None,
+    city: str = "Ярославль",
+    search: str | None = None,
+    token: TokenData | None = Depends(JWTBearer(required=False)),
+):
+    user_id = token.sub if token else None
+    async with Transaction():
+        # TODO: city
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or "Ярославль"
+        feed = await Initiative.get_feed(
+            city=city,
+            category=category,
+            status=status,
+            role=role,
+            search=search,
+            is_maps=True,
         )
         total = await Initiative.get_feed(
             city=city, category=category, status=status, role=role, search=search, is_total=True

@@ -125,6 +125,26 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
+    "handlers": {
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
+        }
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["mail_admins"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+    },
+}
+
 
 # STATIC
 # ------------------------------------------------------------------------------
@@ -186,8 +206,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.sparklingtide.dev",
-    "http://*.sparklingtide.dev",
+    "https://*.voices-city.dev",
+    "http://*.voices-city.ru",
     "https://*.127.0.0.1",
     "http://*.127.0.0.1",
 ]

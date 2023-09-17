@@ -2,7 +2,6 @@ import uuid
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, joinedload, relationship
-
 from voices.app.auth.models import User
 from voices.db.connection import db_session
 from voices.models import BaseModel
@@ -27,19 +26,28 @@ class Friend(BaseModel):
     relationship_type = sa.Column(sa.String(length=12), server_default=RelationshipType.NOT_APPROVED)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
-    @classmethod
-    async def get_friends(cls, user_id: str, last_id: str | None = None, is_total: bool = False):
-        selected = sa.func.count(cls.id) if is_total else cls
+    @staticmethod
+    async def get_friends(user_id: str, last_id: str | None = None, is_total: bool = False, pattern: str | None = None):
+        selected = sa.func.count(Friend.id) if is_total else Friend
         query = sa.select(selected).where(
             sa.or_(Friend.user_id == user_id, Friend.friend_id == user_id)
             & (Friend.relationship_type == RelationshipType.FRIEND)
         )
         if not is_total:
             query = query.options(
-                joinedload(cls.friend).load_only(User.first_name, User.last_name, User.image_url, User.id)
+                joinedload(Friend.friend).load_only(User.first_name, User.last_name, User.image_url, User.id)
             )
         if last_id:
-            query = query.where(cls.id < last_id)
+            query = query.where(Friend.id < last_id)
+
+        if pattern:
+            normalized_pattern = pattern.lower()
+            query = query.where(
+                sa.or_(
+                    sa.func.lower(Friend.friend.property.mapper.class_.first_name).contains(normalized_pattern),
+                    sa.func.lower(Friend.friend.property.mapper.class_.last_name).contains(normalized_pattern),
+                )
+            )
         result = await db_session.get().execute(query)
         if is_total:
             return result.scalar_one()

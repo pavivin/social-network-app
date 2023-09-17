@@ -49,7 +49,10 @@ class Settings(BaseSettings):
     # FIREBASE
     FIREBASE_SECRETS = "./voices_firebase_secrets.json"
 
-    ALLOWED_UPLOAD_TYPES: set = {"jpg", "jpeg", "png", "webp", "gif", "mp4", "gltf"}
+    ALLOWED_PHOTO_TYPES = {"jpg", "jpeg", "png", "webp"}
+    ALLOWED_VIDEO_TYPES = {"webp", "gif", "mp4", "mov", "aiff"}
+    ALLOWED_MODEL_TYPES = {"gltf"}
+    ALLOWED_UPLOAD_TYPES = ALLOWED_PHOTO_TYPES | ALLOWED_VIDEO_TYPES | ALLOWED_MODEL_TYPES
 
     FILE_MAX_SIZE_MB: int = 10
     FILE_MAX_SIZE_KB: int = 1024 * 1024 * FILE_MAX_SIZE_MB
