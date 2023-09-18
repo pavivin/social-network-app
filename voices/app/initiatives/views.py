@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from pydantic import AnyUrl, Field, root_validator
 
+from voices.app.core.exceptions import ValidationError
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 from voices.mongo.models import SurveyType
 
@@ -135,3 +136,12 @@ class CreateInitiativeVew(BaseModel):
     to_date: date | None
     ar_model: AnyUrl | None
     event_direction: str | None
+
+    @root_validator(pre=True)
+    def set_blocks_count(cls, data: dict):
+        if (
+            data["category"] in (Initiative.CitizenCategory.BUILDING, Initiative.CitizenCategory.DECIDE_TOGETHER)
+            and not data["location"]
+        ):
+            raise ValidationError("Location not set")
+        return data
