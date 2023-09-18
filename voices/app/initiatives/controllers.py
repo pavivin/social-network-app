@@ -65,6 +65,9 @@ async def get_feed(
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
+        survey = await Survey.get(initiative.id)
+        if survey:
+            initiative.survey = dict(survey)
         response.append(initiative)
 
     return Response(
@@ -134,6 +137,7 @@ async def get_favorites(
     response = []
     for initiative in feed:  # TODO: rewrite
         initiative.is_liked = True
+        initiative.survey = await Survey.get(initiative.id)
         response.append(initiative)
 
     return Response(
@@ -157,14 +161,15 @@ async def get_my(
             city = user.city or "Ярославль"
         else:
             city = "Ярославль"
-        feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)  # TODO: get from user
-        total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)  # TODO: get from user
+        feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)
+        total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
     response = []
     for initiative in feed:
         initiative.is_liked = initiative.id in set_liked
+        initiative.survey = await Survey.get(initiative.id)
         response.append(initiative)
 
     return Response(

@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import AnyUrl, Field
+from pydantic import AnyUrl, Field, root_validator
 
 from voices.app.core.protocol import BaseModel, GeometryPoint, PaginationView
 from voices.mongo.models import SurveyType
@@ -46,7 +46,13 @@ class SurveyView(BaseModel):
     name: str
     image_url: str
     blocks: list[SurveyBlockView]
+    blocks_count: int = 0
     vote_count: int = 0
+
+    @root_validator(pre=True)
+    def set_blocks_count(cls, data: dict):
+        data["blocks_count"] = len(data["blocks"])
+        return data
 
 
 class UserView(BaseModel):
@@ -71,6 +77,7 @@ class InitiativeView(BaseModel):
     created_at: datetime
     is_liked: bool = False
     tags: list[str] | None
+    survey: SurveyView | None = None
 
 
 class InitiativeDetailedView(InitiativeView):
