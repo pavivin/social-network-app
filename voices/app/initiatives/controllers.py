@@ -225,8 +225,11 @@ async def get_initiative(
 
     answer = response[0]  # TODO: rewrite
 
-    if answer.survey:
-        answer.is_voted = any([[item.user_value for item in block.answer] for block in response[0].survey.blocks])
+    if answer.survey and token:
+        existing_answer = await SurveyAnswer.find(
+            SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
+        ).first_or_none()
+        answer.is_voted = bool(existing_answer)
 
     return Response(payload=answer)
 
