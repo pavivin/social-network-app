@@ -1,5 +1,8 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.exc import IntegrityError
+
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import FriendAlreadyAddedError
 from voices.app.core.protocol import Response
@@ -37,8 +40,8 @@ async def search_by_pattern(
     token: TokenData = Depends(JWTBearer()),
 ):
     async with Transaction():
-        users = await Friend.get_friends(user_id=token.sub, last_id=last_id, pattern=pattern)
-        users = [user.friend for user in users]
+        users = await Friend.get_friends(user_id=token.sub, pattern=pattern)
+        users = [user.friend if user.friend_id != UUID(token.sub) else user.user for user in users]
         total = await Friend.get_friends(user_id=token.sub, is_total=True)
 
     return Response(

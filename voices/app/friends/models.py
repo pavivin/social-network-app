@@ -31,8 +31,7 @@ class Friend(BaseModel):
     async def get_friends(user_id: str, last_id: str | None = None, is_total: bool = False, pattern: str | None = None):
         selected = sa.func.count(Friend.id) if is_total else Friend
         query = sa.select(selected).where(
-            sa.or_(Friend.user_id == user_id, Friend.friend_id == user_id)
-            & (Friend.relationship_type == RelationshipType.FRIEND)
+            sa.or_(Friend.user_id == user_id) & (Friend.relationship_type == RelationshipType.FRIEND)
         )
         if not is_total:
             query = query.join(Friend.friend)
@@ -49,8 +48,36 @@ class Friend(BaseModel):
             )
         result = await db_session.get().execute(query)
         if is_total:
-            return result.scalar_one()
-        return result.scalars().all()
+            friends_count = result.scalar_one()
+        else:
+            friends_friends = result.scalars().all()
+
+        # second part
+        # TODO: to one query
+        selected = sa.func.count(Friend.id) if is_total else Friend
+        query = sa.select(selected).where(
+            sa.or_(Friend.friend_id == user_id) & (Friend.relationship_type == RelationshipType.FRIEND)
+        )
+        if not is_total:
+            query = query.join(Friend.user)
+        if last_id:
+            query = query.where(Friend.id < last_id)
+
+        if pattern:
+            normalized_pattern = pattern.lower()
+            query = query.where(
+                sa.or_(
+                    sa.func.lower(User.first_name).contains(normalized_pattern),
+                    sa.func.lower(User.last_name).contains(normalized_pattern),
+                )
+            )
+
+        result = await db_session.get().execute(query)
+        if is_total:
+            return friends_count + result.scalar_one()
+        friends_users = result.scalars().all()
+
+        return friends_friends + friends_users
 
     @classmethod
     async def add_friend(cls, user_id: str, friend_id: str):
