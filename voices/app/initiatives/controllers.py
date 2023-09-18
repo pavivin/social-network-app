@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
@@ -276,16 +277,17 @@ async def post_comment(
         else:
             user_id_get = initiative.user_id
 
-    send_notification.apply_async(
-        kwargs=dict(
-            user_id_send=token.sub,
-            user_id_get=user_id_get,
-            status=notification_status,
-            initiative_image=initiative.images[0],
-            initiative_id=initiative.id,
-        ),
-        retry=False,
-    )
+    if token.sub != user_id_get:
+        send_notification.apply_async(
+            kwargs=dict(
+                user_id_send=token.sub,
+                user_id_get=user_id_get,
+                status=notification_status,
+                initiative_image=initiative.images[0],
+                initiative_id=initiative.id,
+            ),
+            retry=False,
+        )
 
     return Response()
 

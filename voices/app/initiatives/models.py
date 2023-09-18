@@ -7,6 +7,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
+
 from voices.app.auth.models import User
 from voices.app.core.exceptions import (
     AlreadyLikedError,
@@ -154,7 +155,7 @@ class Initiative(BaseDatetimeModel):
                 joinedload(cls.user).load_only(User.first_name, User.last_name, User.image_url, User.id)
             ).order_by(cls.id.desc())
 
-        if is_maps:
+        if not is_maps:
             query = query.limit(settings.DEFAULT_PAGE_SIZE)
 
         if search:

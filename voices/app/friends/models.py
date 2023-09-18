@@ -1,7 +1,8 @@
 import uuid
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, joinedload, relationship
+from sqlalchemy.orm import Mapped, relationship
+
 from voices.app.auth.models import User
 from voices.db.connection import db_session
 from voices.models import BaseModel
@@ -20,9 +21,9 @@ class Friend(BaseModel):
     __table_args__ = (sa.UniqueConstraint("user_id", "friend_id", name="_user_friend_idx"),)
 
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
-    user: Mapped[User] = relationship("User", foreign_keys="Friend.user_id")
+    user: Mapped[User] = relationship("User", foreign_keys="Friend.user_id", lazy="joined")
     friend_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
-    friend: Mapped[User] = relationship("User", foreign_keys="Friend.friend_id")
+    friend: Mapped[User] = relationship("User", foreign_keys="Friend.friend_id", lazy="joined")
     relationship_type = sa.Column(sa.String(length=12), server_default=RelationshipType.NOT_APPROVED)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
@@ -34,9 +35,7 @@ class Friend(BaseModel):
             & (Friend.relationship_type == RelationshipType.FRIEND)
         )
         if not is_total:
-            query = query.options(
-                joinedload(Friend.friend).load_only(User.first_name, User.last_name, User.image_url, User.id)
-            )
+            query = query.join(Friend.friend)
         if last_id:
             query = query.where(Friend.id < last_id)
 
@@ -44,8 +43,8 @@ class Friend(BaseModel):
             normalized_pattern = pattern.lower()
             query = query.where(
                 sa.or_(
-                    sa.func.lower(Friend.friend.property.mapper.class_.first_name).contains(normalized_pattern),
-                    sa.func.lower(Friend.friend.property.mapper.class_.last_name).contains(normalized_pattern),
+                    sa.func.lower(User.first_name).contains(normalized_pattern),
+                    sa.func.lower(User.last_name).contains(normalized_pattern),
                 )
             )
         result = await db_session.get().execute(query)
