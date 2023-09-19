@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, load_only
+
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
@@ -34,7 +35,7 @@ class User(BaseDatetimeModel):
     image_url: Mapped[str] = sa.Column(
         sa.String(length=2000),
         nullable=True,
-        default="http://89.108.65.101:5000/api/storage/064e74c0198f7159800002e35c77df4a.jpg",
+        default="https://voices-city.ru/api/storage/064e74c0198f7159800002e35c77df4a.jpg",
     )
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
