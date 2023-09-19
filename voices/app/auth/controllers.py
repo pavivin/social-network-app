@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+
 from voices.app.core.exceptions import (
     EmailTakenError,
     PasswordMatchError,
@@ -48,9 +49,12 @@ async def register_user(body: UserRegister):
         access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
         refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
-        await create_user(user_id=user.id, email=user.email)
-        rocketchat_response = await login_user(user_id=user.id)
-        json_response: dict = rocketchat_response.json()
+        try:
+            await create_user(user_id=user.id, email=user.email)
+            rocketchat_response = await login_user(user_id=user.id)
+            json_response: dict = rocketchat_response.json()
+        except Exception:
+            json_response = {"data": {"authToken": "token"}}
 
         return Response(
             payload=TokenView(
@@ -86,12 +90,16 @@ async def authenticate_user(body: UserLogin):
     access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
-    rocketchat_response = await login_user(user_id=user.id)
-    if rocketchat_response.status_code != 200:
-        await create_user(user_id=user.id, email=user.email)
+    try:
         rocketchat_response = await login_user(user_id=user.id)
+        if rocketchat_response.status_code != 200:
+            await create_user(user_id=user.id, email=user.email)
+            rocketchat_response = await login_user(user_id=user.id)
 
-    json_response = rocketchat_response.json()
+        json_response = rocketchat_response.json()
+
+    except Exception:
+        json_response = {"data": {"authToken": "token"}}
 
     return Response(
         payload=TokenView(
