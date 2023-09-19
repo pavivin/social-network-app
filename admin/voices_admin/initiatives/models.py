@@ -87,6 +87,11 @@ class Initiative(models.Model):
     main_text = models.TextField()
     title = models.TextField()
     images = models.JSONField(null=True, blank=True)
+    image_url = models.ImageField(
+        max_length=2000,
+        null=True,
+        blank=True,
+    )
     likes_count = models.IntegerField(default=0)
     comments_count = models.IntegerField(default=0)
     reposts_count = models.IntegerField(default=0)
