@@ -19,7 +19,7 @@ class SurveyType(StrEnum):
 
 class SurveyChoose(BaseDocument):
     user_value: str | None = None
-    value: str
+    value: str | None = None
     vote_count: int = 0
     vote_percent: int = 0
 

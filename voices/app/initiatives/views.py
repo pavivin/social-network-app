@@ -15,7 +15,7 @@ class SurveyChooseCreateView(BaseModel):
 
 
 class SurveyChooseView(BaseModel):
-    value: str
+    value: str | None = None
     user_value: str = None
     vote_count: int = 0
     vote_percent: int = 0
