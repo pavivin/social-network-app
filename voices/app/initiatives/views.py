@@ -78,7 +78,7 @@ class InitiativeView(BaseModel):
     created_at: datetime
     is_liked: bool = False
     tags: list[str] | None
-    survey: SurveyView | None = None
+    survey: dict | None = None
 
 
 class InitiativeDetailedView(InitiativeView):
@@ -94,7 +94,7 @@ class InitiativeDetailedView(InitiativeView):
     comments_count: int
     reposts_count: int
     created_at: datetime
-    survey: SurveyView | None = None
+    survey: dict | None = None
     is_liked: bool = False
     is_voted: bool = False
     tags: list[str] | None

@@ -74,12 +74,20 @@ class Initiative(BaseDatetimeModel):
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
-        query = sa.update(cls).values(likes_count=cls.likes_count + count).where(initiative_id == initiative_id)
+        query = (
+            sa.update(Initiative)
+            .values(likes_count=Initiative.likes_count + count)
+            .where(initiative_id == initiative_id)
+        )
         await db_session.get().execute(query)
 
     @classmethod
     async def increment_comments_count(cls, initiative_id: str):
-        query = sa.update(cls).values(comments_count=cls.comments_count + 1).where(initiative_id == initiative_id)
+        query = (
+            sa.update(Initiative)
+            .values(comments_count=Initiative.comments_count + 1)
+            .where(initiative_id == initiative_id)
+        )
         await db_session.get().execute(query)
 
     @classmethod
