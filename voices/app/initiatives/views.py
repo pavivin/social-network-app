@@ -11,7 +11,7 @@ from .models import Initiative
 
 
 class SurveyChooseCreateView(BaseModel):
-    value: str = None
+    value: str | None = None
 
 
 class SurveyChooseView(BaseModel):
