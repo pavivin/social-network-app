@@ -76,8 +76,8 @@ class Initiative(BaseDatetimeModel):
     async def update_likes_count(cls, initiative_id: str, count: int):
         query = (
             sa.update(Initiative)
-            .values(likes_count=Initiative.likes_count + count)
             .where(initiative_id == initiative_id)
+            .values(likes_count=Initiative.likes_count + count)
         )
         await db_session.get().execute(query)
 
@@ -85,8 +85,8 @@ class Initiative(BaseDatetimeModel):
     async def increment_comments_count(cls, initiative_id: str):
         query = (
             sa.update(Initiative)
-            .values(comments_count=Initiative.comments_count + 1)
             .where(initiative_id == initiative_id)
+            .values(comments_count=Initiative.comments_count + 1)
         )
         await db_session.get().execute(query)
 
@@ -292,6 +292,12 @@ class InitiativeLike(BaseModel):
     initiative_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("initiatives.id"), nullable=False)
     initiative: Mapped[User] = relationship("Initiative", foreign_keys="InitiativeLike.initiative_id")
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
+
+    @classmethod
+    async def get_count_liked(cls, initiative_id: str):
+        query = sa.select(sa.func.count(cls.initiative_id)).where(cls.initiative_id == initiative_id)
+        result = await db_session.get().execute(query)
+        return result.scalar_one()
 
     @classmethod
     async def get_liked(cls, initiative_list: list[str], user_id: str):
