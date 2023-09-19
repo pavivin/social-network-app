@@ -42,6 +42,12 @@ class User(BaseDatetimeModel):
     birthdate: Mapped[date] = sa.Column(sa.Date, nullable=True)
 
     @staticmethod
+    async def get_all():
+        query = sa.select(User.email)
+        result = (await db_session.get().execute(query)).scalars().all()
+        return result
+
+    @staticmethod
     async def get_by_email(email: str):
         query = (
             sa.select(User)

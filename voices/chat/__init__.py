@@ -2,10 +2,11 @@ import uuid
 
 import httpx
 from async_lru import alru_cache
-
 from voices.config import settings
 
+ALL_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.list"
 CREATE_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.create"
+DELETE_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.delete"
 LOGIN_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/login"
 
 
@@ -38,6 +39,41 @@ async def login_user(user_id: uuid.UUID):
             json={
                 "user": user_id.hex,
                 "password": user_id.hex,
+            },
+        )
+
+
+async def get_users():
+    response = await __login_superuser()
+    json_response = response.json()
+    superuser_id = json_response["data"]["userId"]
+    superuser_auth_token = json_response["data"]["authToken"]
+
+    async with httpx.AsyncClient() as client:
+        return await client.get(
+            ALL_USER_URL,
+            headers={
+                "X-Auth-Token": superuser_auth_token,
+                "X-User-Id": superuser_id,
+            },
+        )
+
+
+async def delete_user(user_id: str):
+    response = await __login_superuser()
+    json_response = response.json()
+    superuser_id = json_response["data"]["userId"]
+    superuser_auth_token = json_response["data"]["authToken"]
+
+    async with httpx.AsyncClient() as client:
+        return await client.post(
+            DELETE_USER_URL,
+            json={
+                "user": user_id,
+            },
+            headers={
+                "X-Auth-Token": superuser_auth_token,
+                "X-User-Id": superuser_id,
             },
         )
 

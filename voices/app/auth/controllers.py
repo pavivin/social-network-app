@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-
 from voices.app.core.exceptions import (
     EmailTakenError,
     PasswordMatchError,
@@ -51,7 +50,7 @@ async def register_user(body: UserRegister):
 
         await create_user(user_id=user.id, email=user.email)
         rocketchat_response = await login_user(user_id=user.id)
-        json_response = rocketchat_response.json()
+        json_response: dict = rocketchat_response.json()
 
         return Response(
             payload=TokenView(
