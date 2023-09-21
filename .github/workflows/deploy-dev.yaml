@@ -64,4 +64,4 @@ jobs:
       - name: Recreate deployment
         run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker compose -p voices-dev up -d web worker
       - name: Restart rocketchat
-        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker compose -p voices-dev restart -d rocketchat
+        run: DOCKER_HOST=ssh://${{ steps.ssh-context.outputs.SERVER }} docker compose -p voices-dev restart rocketchat
