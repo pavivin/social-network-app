@@ -110,6 +110,7 @@ services:
     networks:
       - rocketchat
       - voices-dev
+    restart: always
 volumes:
   postgres_data:
   mongodb_data:
