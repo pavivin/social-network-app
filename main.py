@@ -5,7 +5,6 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
-from sqladmin import Admin, ModelView
 
 import voices.app.auth.controllers as auth
 import voices.app.friends.controllers as friends
@@ -13,11 +12,8 @@ import voices.app.healthcheck.controllers as healthcheck
 import voices.app.initiatives.controllers as initiatives
 import voices.app.notifications.controllers as notifications
 import voices.app.storage.controllers as storage
-from voices.app.auth.models import User
 from voices.app.core import exceptions
 from voices.app.core.protocol import Response
-from voices.app.initiatives.models import Initiative
-from voices.db.base import engine
 from voices.logger import logger
 from voices.mongo import mongo_client
 from voices.mongo.models import Survey, SurveyAnswer
@@ -42,30 +38,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-admin = Admin(app, engine)
-
-
-class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.first_name, User.role]
-
-
-class InitiativeAdmin(ModelView, model=Initiative):
-    column_list = [
-        Initiative.category,
-        Initiative.title,
-        Initiative.main_text,
-        Initiative.created_at,
-        Initiative.from_date,
-        Initiative.to_date,
-        Initiative.city,
-        Initiative.likes_count,
-        Initiative.comments_count,
-        Initiative.user,
-    ]
-
-
-admin.add_view(UserAdmin)
-admin.add_view(InitiativeAdmin)
 
 app.include_router(healthcheck.router, tags=["healthcheck"])
 app.include_router(auth.router, tags=["auth"], prefix="/api")
