@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     ALLOWED_PHOTO_TYPES = {"jpg", "jpeg", "png", "webp"}
     ALLOWED_VIDEO_TYPES = {"webp", "gif", "mp4", "mov", "aiff"}
-    ALLOWED_MODEL_TYPES = {"gltf"}
+    ALLOWED_MODEL_TYPES = {"gltf", "glb"}
     ALLOWED_UPLOAD_TYPES = ALLOWED_PHOTO_TYPES | ALLOWED_VIDEO_TYPES | ALLOWED_MODEL_TYPES
 
     FILE_MAX_SIZE_MB: int = 10
