@@ -33,7 +33,7 @@ jobs:
 
   migrate:
     runs-on: ubuntu-latest
-    needs: [paths-filter]
+    needs: [paths-filter, build]
     if: needs.paths-filter.outputs.migrations == 'true'
     steps:
       - uses: actions/checkout@v3
