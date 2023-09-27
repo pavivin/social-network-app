@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, status
 
@@ -6,12 +7,17 @@ from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
     AlreadyVotedError,
+    ForbiddenError,
     ObjectNotFoundError,
     ObsceneLanguageError,
     ValidationError,
 )
 from voices.app.core.protocol import PaginationView, Response
-from voices.app.core.responses import NotFoundResponse
+from voices.app.core.responses import (
+    BadRequestResponse,
+    ForbiddenResponse,
+    NotFoundResponse,
+)
 from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
 from voices.app.initiatives.views import (
     CommentListView,
@@ -232,6 +238,41 @@ async def get_initiative(
         answer.is_voted = bool(existing_answer)
 
     return Response(payload=answer)
+
+
+@router.delete(
+    "/initiatives/{initiative_id}",
+    response_model=Response,
+    responses={
+        status.HTTP_200_OK: {
+            "model": Response,
+            "description": "Ok Response",
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "model": BadRequestResponse,
+            "description": "Already Deleted",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ForbiddenResponse,
+            "description": "Forbidden",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": NotFoundResponse,
+            "description": "Initiative with id not found",
+        },
+    },
+)
+async def delete_initiative(
+    initiative_id: uuid.UUID,
+    token: TokenData = Depends(JWTBearer()),
+):
+    async with Transaction():
+        initiative = await Initiative.get(initiative_id)  # raises 404
+        if initiative.user_id.hex != token.sub:
+            raise ForbiddenError
+        initiative.deleted_at = datetime.now()
+
+    return Response()
 
 
 @router.get(

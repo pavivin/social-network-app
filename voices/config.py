@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     CELERY_BACKEND_URL: str = "redis://localhost:6379/1"
 
     AUTH_ALGORITHM: str = "RS256"
-    ACCESS_TOKEN_EXPIRES: int = 15 * 60
+    ACCESS_TOKEN_EXPIRES: int = 30 * 60
     REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 30
 
     AUTH_PUBLIC_KEY: Path = BASE_DIR / "secret.pub"

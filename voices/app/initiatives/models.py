@@ -293,35 +293,47 @@ class InitiativeLike(BaseModel):
     initiative: Mapped[User] = relationship("Initiative", foreign_keys="InitiativeLike.initiative_id")
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
 
-    @classmethod
-    async def get_count_liked(cls, initiative_id: str):
-        query = sa.select(sa.func.count(cls.initiative_id)).where(cls.initiative_id == initiative_id)
+    @staticmethod
+    async def get_count_liked(initiative_id: str):
+        query = sa.select(sa.func.count(InitiativeLike.initiative_id)).where(
+            InitiativeLike.initiative_id == initiative_id
+        )
         result = await db_session.get().execute(query)
         return result.scalar_one()
 
-    @classmethod
-    async def get_liked(cls, initiative_list: list[str], user_id: str):
-        query = sa.select(cls.initiative_id).where((cls.initiative_id.in_(initiative_list)) & (cls.user_id == user_id))
+    @staticmethod
+    async def get_liked(initiative_list: list[str], user_id: str):
+        query = sa.select(InitiativeLike.initiative_id).where(
+            (InitiativeLike.initiative_id.in_(initiative_list)) & (InitiativeLike.user_id == user_id)
+        )
         result = await db_session.get().execute(query)
         return result.scalars().all()
 
-    @classmethod
-    async def is_like_exists(cls, initiative_id: uuid.UUID, user_id: uuid.UUID):
-        query = sa.select(cls.id).where((initiative_id == initiative_id) & (user_id == user_id))
+    @staticmethod
+    async def is_like_exists(initiative_id: uuid.UUID, user_id: uuid.UUID):
+        query = sa.select(InitiativeLike.id).where(
+            (InitiativeLike.initiative_id == initiative_id) & (user_id == user_id)
+        )
         result = await db_session.get().execute(query)
         return result.scalar_one()
 
     @classmethod
-    async def post_like(cls, initiative_id: uuid.UUID, user_id: uuid.UUID):
+    async def post_like(initiative_id: uuid.UUID, user_id: uuid.UUID):
         try:
-            query = sa.insert(cls).values(initiative_id=initiative_id, user_id=user_id)
+            query = sa.insert(InitiativeLike).values(
+                InitiativeLike.initiative_id == initiative_id, InitiativeLike.user_id == user_id
+            )
             return await db_session.get().execute(query)
         except IntegrityError:
             raise AlreadyLikedError
 
-    @classmethod
-    async def delete_like(cls, initiative_id: uuid.UUID, user_id: uuid.UUID):
-        query = sa.delete(cls).where((initiative_id == initiative_id) & (user_id == user_id)).returning(cls.id)
+    @staticmethod
+    async def delete_like(initiative_id: uuid.UUID, user_id: uuid.UUID):
+        query = (
+            sa.delete(InitiativeLike)
+            .where((InitiativeLike.initiative_id == initiative_id) & (InitiativeLike.user_id == user_id))
+            .returning(InitiativeLike.id)
+        )
         result: sa.CursorResult = await db_session.get().execute(query)
         if not result.scalars().all():
             raise AlreadyUnlikedError

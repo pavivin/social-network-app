@@ -43,6 +43,11 @@ class BadRequestError(ApiException):
     message = "Bad Request"
 
 
+class AlreadyDeletedError(ApiException):
+    status_code = 400
+    message = "Already deleted initiative"
+
+
 class AlreadyVotedError(ApiException):
     status_code = 400
     message = "Already voted initiative"
