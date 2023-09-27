@@ -22,8 +22,11 @@ async def get_users(
     token: TokenData = Depends(JWTBearer()),
 ):
     async with Transaction():
-        users = await User.search_by_pattern(pattern=pattern, last_id=last_id)  # TODO: return total in the same def
-        total = await User.search_by_pattern(pattern=pattern, is_total=True)
+        user = await User.get_by_id(id=token.sub)  # optimize queries index of city in token
+        users = await User.search_by_pattern(
+            pattern=pattern, last_id=last_id, city=user.city
+        )  # TODO: return total in the same def
+        total = await User.search_by_pattern(pattern=pattern, is_total=True, city=user.city)
 
     return Response(
         payload=FriendListView(

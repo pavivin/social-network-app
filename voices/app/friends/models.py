@@ -1,7 +1,7 @@
 import uuid
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped, load_only, relationship
 
 from voices.app.auth.models import User
 from voices.db.connection import db_session
@@ -26,6 +26,27 @@ class Friend(BaseModel):
     friend: Mapped[User] = relationship("User", foreign_keys="Friend.friend_id", lazy="joined")
     relationship_type = sa.Column(sa.String(length=12), server_default=RelationshipType.NOT_APPROVED)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
+
+    @staticmethod
+    async def get_friend(profile_id: str, user_id: str):  # TODO optimize
+        query = (
+            sa.select(Friend)
+            .where(sa.and_(Friend.user_id == profile_id, Friend.friend_id == user_id))
+            .options(load_only(Friend.relationship_type, Friend.user_id, Friend.friend_id))
+        )
+        result = await db_session.get().execute(query)
+        relationship_type = result.scalar_one_or_none()
+        if relationship_type:
+            return relationship_type
+
+        query = (
+            sa.select(Friend)
+            .where(sa.and_(Friend.friend_id == profile_id, Friend.user_id == user_id))
+            .options(load_only(Friend.relationship_type, Friend.user_id, Friend.friend_id))
+        )
+        result = await db_session.get().execute(query)
+        relationship_type = result.scalar_one_or_none()
+        return relationship_type
 
     @staticmethod
     async def get_friends(user_id: str, last_id: str | None = None, is_total: bool = False, pattern: str | None = None):

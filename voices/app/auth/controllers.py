@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends
 
 from voices.app.core.exceptions import (
     EmailTakenError,
+    ObjectNotFoundError,
     PasswordMatchError,
     UserNotFoundError,
 )
 from voices.app.core.protocol import Response
+from voices.app.friends.models import Friend, RelationshipType
 from voices.auth.hash import get_password_hash, verify_password
 from voices.auth.jwt_token import (
     JWTBearer,
@@ -162,11 +164,30 @@ async def get_profile(token: TokenData = Depends(JWTBearer())):
 
 
 @router.get("/profile/{user_id}", response_model=Response[ProfileView])
-async def get_user_profile(user_id: str):
+async def get_user_profile(user_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
-        user = await User.get_by_id(id=user_id)
+        user = await User.get_profile(user_id=user_id)
+        friend = await Friend.get_friend(user_id=token.sub, profile_id=user_id)
 
-    return Response(payload=ProfileView.from_orm(user))
+        if friend and friend.relationship_type == RelationshipType.NOT_APPROVED:
+            if friend.user_id.hex == token.sub:
+                friend.relationship_type = RelationshipType.FOLLOWER  # profile user is follower for this user
+
+        if not user:
+            raise ObjectNotFoundError
+
+    return Response(
+        payload=ProfileView(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            image_url=user.image_url,
+            city=user.city,
+            district=user.district,
+            birthdate=user.birthdate,
+            relationship_type=friend.relationship_type if friend else None,
+        )
+    )
 
 
 @router.get("/cities", response_model=Response[CityListView])

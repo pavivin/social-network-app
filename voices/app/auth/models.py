@@ -65,6 +65,12 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
+    async def get_profile(user_id: uuid.UUID):
+        query = sa.select(User).where(User.id == user_id)
+        result = await db_session.get().execute(query)
+        return result.scalars().first()
+
+    @staticmethod
     async def insert_data(email: str, hashed_password: str, first_name: str, last_name: str, city: str) -> "User":
         query = (
             sa.insert(User)
@@ -79,7 +85,7 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
-    async def search_by_pattern(pattern: str, last_id: str | None = None, is_total: bool = False):
+    async def search_by_pattern(pattern: str, city: str, last_id: str | None = None, is_total: bool = False):
         selected = sa.func.count(User.id) if is_total else User
         query = sa.select(selected)
         if pattern:
@@ -89,6 +95,7 @@ class User(BaseDatetimeModel):
                     sa.func.lower(User.first_name).contains(normalized_pattern),
                     sa.func.lower(User.last_name).contains(normalized_pattern),
                 )
+                & (User.city == city)  # TODO: city to indexed number
             )
         if last_id:
             query = query.where(User.id < last_id)
