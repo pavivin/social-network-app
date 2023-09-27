@@ -23,6 +23,13 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: migrations
+        with:
+          filters: |
+            src:
+              - 'migrations/**'
+      - if: steps.changes.outputs.src == 'true'
       - id: ssh-context
         uses: invi5H/ssh-action@v1
         with:
