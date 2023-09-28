@@ -59,6 +59,7 @@ app.include_router(notifications.router, tags=["notifications"], prefix="/api")
 # TODO: add sentry
 @app.exception_handler(Exception)
 async def uvicorn_base_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
     logger.error(exc)
     error = exceptions.ServerError(str(exc))
     return ORJSONResponse(
@@ -104,6 +105,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(HTTPException)
 async def validation_http_exception_handler(request: Request, exc: HTTPException):
+    sentry_sdk.capture_exception(exc)
     logger.error(exc)
     error = exceptions.UnauthorizedError(message=str(exc))
     return ORJSONResponse(
