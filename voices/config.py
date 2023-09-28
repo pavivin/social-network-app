@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     ROCKETCHAT_PASSWORD: str
     ROCKETCHAT_URL: str
 
+    SENTRY_DSN: str
+
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
         if v and isinstance(v, str):

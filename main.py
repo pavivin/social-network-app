@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from beanie import init_beanie
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -14,9 +15,17 @@ import voices.app.notifications.controllers as notifications
 import voices.app.storage.controllers as storage
 from voices.app.core import exceptions
 from voices.app.core.protocol import Response
+from voices.config import settings
 from voices.logger import logger
 from voices.mongo import mongo_client
 from voices.mongo.models import Survey, SurveyAnswer
+
+if not settings.DEBUG:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        traces_sample_rate=1.0,
+        # profiles_sample_rate=1.0,
+    )
 
 
 @asynccontextmanager
