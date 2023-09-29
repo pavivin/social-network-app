@@ -7,7 +7,6 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
-
 from voices.app.auth.models import User
 from voices.app.core.exceptions import (
     AlreadyLikedError,
@@ -71,6 +70,7 @@ class Initiative(BaseDatetimeModel):
     tags: Mapped[JSONB] = sa.Column(JSONB, nullable=True)
     ar_model: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     event_direction: Mapped[str] = sa.Column(sa.String(length=100), nullable=True)
+    approved: Mapped[bool] = sa.Column(sa.Boolean, nullable=True)
 
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
@@ -317,7 +317,7 @@ class InitiativeLike(BaseModel):
         result = await db_session.get().execute(query)
         return result.scalar_one()
 
-    @classmethod
+    @staticmethod
     async def post_like(initiative_id: uuid.UUID, user_id: uuid.UUID):
         try:
             query = sa.insert(InitiativeLike).values(

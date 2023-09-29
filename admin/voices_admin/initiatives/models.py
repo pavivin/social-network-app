@@ -103,6 +103,7 @@ class Initiative(models.Model):
     tags = models.JSONField(null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id")
     created_at = models.DateTimeField()
+    approved = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
         return self.title

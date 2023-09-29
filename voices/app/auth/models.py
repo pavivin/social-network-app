@@ -5,7 +5,6 @@ from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, load_only
-
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
@@ -41,6 +40,8 @@ class User(BaseDatetimeModel):
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     district: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)
     birthdate: Mapped[date] = sa.Column(sa.Date, nullable=True)
+    email_approved: Mapped[bool] = sa.Column(sa.Boolean, nullable=True)
+    phone: Mapped[str] = sa.Column(sa.String, nullable=True, unique=True)
 
     @staticmethod
     async def get_all():
