@@ -192,7 +192,7 @@ class Initiative(BaseDatetimeModel):
         return result.scalars().all()
 
     @staticmethod
-    async def get_actual(city: str, last_id: str = None, is_total: bool = False):
+    async def get_actual(city: str, is_total: bool = False):
         selected = sa.func.count(Initiative.id) if is_total else Initiative
         current_date = date.today()
         query = sa.select(selected).where(
@@ -205,15 +205,12 @@ class Initiative(BaseDatetimeModel):
 
         if not is_total:
             query = (
-                query.limit(settings.DEFAULT_PAGE_SIZE)
+                query.limit(settings.ACTUAL_PAGE_SIZE)
                 .options(
                     joinedload(Initiative.user).load_only(User.first_name, User.last_name, User.id, User.image_url)
                 )
                 .order_by(Initiative.id.desc())
             )
-
-        if last_id:
-            query = query.where(Initiative.id < last_id)
 
         result = await db_session.get().execute(query)
         if is_total:

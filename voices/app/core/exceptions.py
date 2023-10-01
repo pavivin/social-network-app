@@ -102,6 +102,11 @@ class UnsupportedFileTypeError(ApiException):
     message = f"Max file size: {settings.FILE_MAX_SIZE_MB} Mb"
 
 
+class NeedEmailConfirmation(ApiException):
+    status_code = 400
+    message = "You need to confirm email"
+
+
 class UnauthorizedError(ApiException):
     status_code = 401
     message = "Unauthorized"

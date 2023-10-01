@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
 
 from voices.app.core.exceptions import (
     EmailTakenError,
@@ -17,11 +18,14 @@ from voices.auth.jwt_token import (
 )
 from voices.chat import create_user, login_user
 from voices.db.connection import Transaction
+from voices.mail.confirm_email import confirm_email
+from voices.redis import Redis
 
 from .models import User
 from .views import (
     CheckUserLogin,
     CityListView,
+    ProfileUpdateView,
     ProfileView,
     Token,
     TokenData,
@@ -126,27 +130,19 @@ async def post_refresh_token(body: Token):
     access_token, exp = create_access_token(TokenData(sub=user.id.hex, role=user.role))
     refresh_token = create_refresh_token(TokenData(sub=user.id.hex, role=user.role))
 
-    rocketchat_response = await login_user(user_id=user.id)
-
-    if rocketchat_response.status_code != 200:
-        await create_user(user_id=user.id, email=user.email)
-        rocketchat_response = await login_user(user_id=user.id)
-
-    json_response = rocketchat_response.json()
-
     return Response(
         payload=TokenView(
             access_token=access_token,
             refresh_token=refresh_token,
             rocketchat_user_id=user.id.hex,
-            rocketchat_auth_token=json_response["data"]["authToken"],
+            rocketchat_auth_token=None,
             exp=exp,
         ),
     )
 
 
-@router.patch("/profile", response_model=Response[ProfileView])
-async def update_profile(body: ProfileView, token: TokenData = Depends(JWTBearer())):
+@router.patch("/profile", response_model=Response[ProfileView])  # TODO: to profile module
+async def update_profile(body: ProfileUpdateView, token: TokenData = Depends(JWTBearer())):
     unset = body.dict(exclude_unset=True)
 
     async with Transaction():
@@ -195,3 +191,28 @@ def get_cites():
     return Response(
         payload=CityListView(cities=User.City.all()),
     )
+
+
+@router.post("/confirm-email", response_model=Response)  # TODO: to mail module
+async def send_confirm_email(token: TokenData = Depends(JWTBearer())):
+    user_id = token.sub
+    async with Transaction():  # TODO: auto transaction
+        user_email = await User.get_email_by_id(id=user_id)
+
+    email_token = await Redis.generate_confirm_email_token(user_id=user_id)
+    confirm_email(user_id=user_id, email_token=email_token, recipient_email=user_email)  # to celery
+    return Response()
+
+
+@router.get("/confirm-email/{user_id}/{email_token}")
+async def get_confirm_email(user_id: str, email_token: str):
+    async with Transaction():
+        user_email = await User.get_email_by_id(id=user_id)
+
+        cache_value = await Redis.get_confirm_email_token(user_id=user_id)
+
+        if user_email and email_token and cache_value == email_token:
+            await User.confirm_email(user_id=user_id)
+            return HTMLResponse(f"<html><body>Адрес электронной почты <b>{user_email}</b> подтверждён</body></html>")
+        # TODO: email already confirmed
+        return HTMLResponse("<html><body>Ссылка недействительна или токен доступа истёк</body></html>")

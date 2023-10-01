@@ -19,6 +19,7 @@ from voices.config import settings
 from voices.logger import logger
 from voices.mongo import mongo_client
 from voices.mongo.models import Survey, SurveyAnswer
+from voices.redis import Redis
 
 if not settings.DEBUG:
     sentry_sdk.init(
@@ -34,7 +35,9 @@ async def lifespan(app: FastAPI):
         database=mongo_client.voices,
         document_models=[Survey, SurveyAnswer],
     )
+    await Redis().connect()
     yield
+    await Redis().disconnect()
 
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None, lifespan=lifespan)

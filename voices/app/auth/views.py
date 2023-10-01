@@ -45,6 +45,16 @@ class UserRegister(BaseModel):
     city: str | None = None
 
 
+class ProfileUpdateView(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    image_url: AnyUrl | None = None
+    city: str | None = None
+    district: str | None = None
+    phone: str
+    birthdate: date | None = None
+
+
 class ProfileView(BaseModel):
     id: uuid.UUID | str
     first_name: str | None = None

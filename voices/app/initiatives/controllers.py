@@ -8,6 +8,7 @@ from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (
     AlreadyVotedError,
     ForbiddenError,
+    NeedEmailConfirmation,
     ObjectNotFoundError,
     ObsceneLanguageError,
     ValidationError,
@@ -31,6 +32,7 @@ from voices.app.initiatives.views import (
 )
 from voices.auth.jwt_token import JWTBearer
 from voices.broker.tasks.notification import EventName, send_notification
+from voices.config import settings
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
 from voices.mongo.models import Survey, SurveyAnswer, SurveyType
@@ -48,11 +50,11 @@ async def get_feed(
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
-    city = "Ярославль"
+    city = settings.DEFAULT_CITY
     async with Transaction():
         if token:
             user = await User.get_by_id(token.sub)  # TODO: get from token
-            city = user.city or "Ярославль"
+            city = user.city or settings.DEFAULT_CITY
         feed = await Initiative.get_feed(
             city=city,
             category=category,
@@ -85,16 +87,15 @@ async def get_feed(
 
 @router.get("/initiatives/actual", response_model=Response[InitiativeListView])
 async def get_feed_actual(
-    last_id: uuid.UUID | None = None,
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
-    city = "Ярославль"
+    city = settings.DEFAULT_CITY
     async with Transaction():
         if token:
             user = await User.get_by_id(token.sub)  # TODO: city number to token (e.g. 1 - Yaroslavl)
-            city = user.city or "Ярославль"
-        feed = await Initiative.get_actual(city=city, last_id=last_id)
-        total = await Initiative.get_actual(city=city, last_id=last_id, is_total=True)
+            city = user.city or settings.DEFAULT_CITY
+        feed = await Initiative.get_actual(city=city)
+        total = await Initiative.get_actual(city=city, is_total=True)
 
     return Response(
         payload=InitiativeListView(
@@ -113,12 +114,12 @@ async def get_feed_maps(
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
-    city = "Ярославль"
+    city = settings.DEFAULT_CITY
     async with Transaction():
         # TODO: city
         if token:
             user = await User.get_by_id(token.sub)
-            city = user.city or "Ярославль"
+            city = user.city or settings.DEFAULT_CITY
         feed = await Initiative.get_feed(
             city=city,
             category=category,
@@ -154,9 +155,9 @@ async def get_favorites(
     async with Transaction():
         if token:
             user = await User.get_by_id(token.sub)
-            city = user.city or "Ярославль"
+            city = user.city or settings.DEFAULT_CITY
         else:
-            city = "Ярославль"
+            city = settings.DEFAULT_CITY
         feed = await Initiative.get_favorites(city=city, last_id=last_id, user_id=token.sub)
         total = await Initiative.get_favorites(city=city, user_id=token.sub, is_total=True)
 
@@ -184,9 +185,9 @@ async def get_my(
     async with Transaction():
         if token:
             user = await User.get_by_id(token.sub)
-            city = user.city or "Ярославль"
+            city = user.city or settings.DEFAULT_CITY
         else:
-            city = "Ярославль"
+            city = settings.DEFAULT_CITY
         feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)
         total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
@@ -214,9 +215,13 @@ async def create_initiative(
     async with Transaction():
         if token:
             user = await User.get_by_id(token.sub)
-            city = user.city or "Ярославль"
+            city = user.city or settings.DEFAULT_CITY
         else:
-            city = "Ярославль"
+            city = settings.DEFAULT_CITY
+
+        if not user.email_approved:
+            raise NeedEmailConfirmation
+
         initiative_id = await Initiative.create(
             city=city,
             user_id=user.id,

@@ -47,6 +47,7 @@ uuid7 = "^0.1.0"
 async-lru = "^2.0.4"
 python-multipart = "^0.0.6"
 sentry-sdk = "^1.31.0"
+phonenumbers = "^8.13.22"
 
 
 [build-system]

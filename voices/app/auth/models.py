@@ -61,6 +61,12 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
+    async def get_email_by_id(id: uuid.UUID):
+        query = sa.select(User.email).where(User.id == id)
+        result = await db_session.get().execute(query)
+        return result.scalar_one_or_none()
+
+    @staticmethod
     async def get_by_id(id: uuid.UUID):
         query = sa.select(User).where(User.id == id)
         result = (await db_session.get().execute(query)).scalars().first()
@@ -85,6 +91,11 @@ class User(BaseDatetimeModel):
     async def update_profile(unset: dict, user_id: str):
         query = sa.update(User).values(**unset).where(User.id == user_id).returning(User)
         return (await db_session.get().execute(query)).scalar()
+
+    @staticmethod
+    async def confirm_email(user_id: str):
+        query = sa.update(User).values(email_approved=True).where(User.id == user_id)
+        return await db_session.get().execute(query)
 
     @staticmethod
     async def search_by_pattern(pattern: str, city: str, last_id: str | None = None, is_total: bool = False):

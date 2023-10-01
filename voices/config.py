@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     SERVER_PORT: int = 8000
     SERVER_HOST: str = "0.0.0.0"
 
+    REDIS_URL: str = "redis://localhost:6379"
+
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_BACKEND_URL: str = "redis://localhost:6379/1"
 
@@ -41,6 +43,7 @@ class Settings(BaseSettings):
     AUTH_PRIVATE_KEY_DATA: str = None
 
     DEFAULT_PAGE_SIZE = 20
+    ACTUAL_PAGE_SIZE = 5  # TODO: rename (actuals or actual feed)
 
     RAW_OBSCENE_WORDS_FILE = "obscene_words.txt"
     NORMALIZED_OBSCENE_WORDS_FILE = "normalized_words.txt"
@@ -63,6 +66,13 @@ class Settings(BaseSettings):
     ROCKETCHAT_URL: str
 
     SENTRY_DSN: str
+
+    DEFAULT_CITY: str = "Ярославль"
+
+    MAIL_SENDER_EMAIL: str
+    MAIL_SENDER_PASSWORD: str
+    MAIL_SENDER_DOMAIN: str
+    MAIL_SENDER_PORT: int
 
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
