@@ -7,6 +7,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, joinedload, relationship
+
 from voices.app.auth.models import User
 from voices.app.core.exceptions import (
     AlreadyLikedError,
@@ -57,6 +58,7 @@ class Initiative(BaseDatetimeModel):
     user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default
     city: Mapped[str] = sa.Column(sa.String(length=35))
     images: Mapped[JSONB] = sa.Column(JSONB)
+    image_url: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)  # temp for Django
     category: Mapped[str] = sa.Column(sa.String(length=count_max_length(Category)))
     location = sa.Column(Geometry("POINT"), nullable=True)
     title: Mapped[str] = sa.Column(sa.String(length=100), nullable=False)
@@ -156,7 +158,9 @@ class Initiative(BaseDatetimeModel):
         is_maps: bool = False,
     ):
         selected = sa.func.count(cls.id) if is_total else cls
-        query = sa.select(selected).where((cls.city == city) & (cls.deleted_at.is_(None)))
+        query = sa.select(selected).where(
+            (cls.city == city) & (cls.deleted_at.is_(None)) & (Initiative.approved.is_(True))
+        )
 
         if not is_total:
             query = query.options(
@@ -187,17 +191,59 @@ class Initiative(BaseDatetimeModel):
             return result.scalar_one()
         return result.scalars().all()
 
+    @staticmethod
+    async def get_actual(city: str, last_id: str = None, is_total: bool = False):
+        selected = sa.func.count(Initiative.id) if is_total else Initiative
+        current_date = date.today()
+        query = sa.select(selected).where(
+            (Initiative.city == city)
+            & (Initiative.deleted_at.is_(None))
+            & (Initiative.approved.is_(True))
+            & (Initiative.from_date <= current_date)
+            & (Initiative.to_date >= current_date)
+        )
+
+        if not is_total:
+            query = (
+                query.limit(settings.DEFAULT_PAGE_SIZE)
+                .options(
+                    joinedload(Initiative.user).load_only(User.first_name, User.last_name, User.id, User.image_url)
+                )
+                .order_by(Initiative.id.desc())
+            )
+
+        if last_id:
+            query = query.where(Initiative.id < last_id)
+
+        result = await db_session.get().execute(query)
+        if is_total:
+            return result.scalar_one()
+        return result.scalars().all()
+
     @classmethod
     async def get_favorites(cls, city: str, user_id: str, last_id: str = None, is_total: bool = False):
         selected = sa.func.count(cls.id) if is_total else cls
         query = (
             sa.select(selected)
             .join(InitiativeLike, cls.id == InitiativeLike.initiative_id)
-            .where((Initiative.city == city) & (Initiative.deleted_at.is_(None) & (InitiativeLike.user_id == user_id)))
+            .where(
+                (Initiative.city == city)
+                & (
+                    Initiative.deleted_at.is_(None)
+                    & (Initiative.approved.is_(True))
+                    & (InitiativeLike.user_id == user_id)
+                )
+            )
         )
 
         if not is_total:
-            query = query.limit(settings.DEFAULT_PAGE_SIZE).options(joinedload(Initiative.user)).order_by(cls.id.desc())
+            query = (
+                query.limit(settings.DEFAULT_PAGE_SIZE)
+                .options(
+                    joinedload(Initiative.user).load_only(User.first_name, User.last_name, User.id, User.image_url)
+                )
+                .order_by(cls.id.desc())
+            )
 
         if last_id:
             query = query.where(cls.id < last_id)
@@ -211,7 +257,8 @@ class Initiative(BaseDatetimeModel):
     async def get_my(cls, city: str, user_id: str, last_id: str = None, is_total: bool = False):
         selected = sa.func.count(cls.id) if is_total else cls
         query = sa.select(selected).where(
-            (Initiative.city == city) & (Initiative.deleted_at.is_(None) & (Initiative.user_id == user_id))
+            (Initiative.city == city)
+            & (Initiative.deleted_at.is_(None) & (Initiative.approved.is_(True)) & (Initiative.user_id == user_id))
         )
 
         if not is_total:

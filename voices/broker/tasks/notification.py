@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import StrEnum
 
 from firebase_admin import messaging
@@ -17,6 +17,9 @@ class EventName(StrEnum):
     COMMENT = "comment"
     ANSWERED = "answered"
     CHANGE_STATUS = "change_status"
+    POST_CREATED = "post_created"
+    POST_APPROVED = "post_approved"
+    POST_DECLINED = "post_declined"
 
 
 status_text = {
@@ -27,7 +30,12 @@ status_text = {
     EventName.COMMENT: "Оставил комментарий под вашей записью",
     EventName.ANSWERED: "Ответил вам",
     EventName.CHANGE_STATUS: "Изменился статус интересовавшей вас проблемы",
+    EventName.POST_CREATED: "Ваша запись находится на модерации",
+    EventName.POST_APPROVED: "Ваша запись одобрена",
+    EventName.POST_DECLINED: "Ваша запись отклонена",
 }
+
+assert len(EventName) == len(status_text)  # TODO: to tests
 
 
 async def firebase_notifications(
@@ -35,15 +43,13 @@ async def firebase_notifications(
 ):
     async with Transaction():
         tokens = await FirebaseApp.get_tokens(user_id_get)
-
         user: User = await User.get_by_id(user_id_send)
         text = status_text[status]
-        time = datetime.now(tz=timezone.utc)
         data_send = {
             "text": text,
             "picture": user.image_url,  # TODO: remove
             "avatar_url": user.image_url,
-            "time": time.isoformat(),
+            "time": datetime.now(),
             "first_name": user.first_name,
             "last_name": user.last_name,
             "type": status,

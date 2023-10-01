@@ -29,7 +29,7 @@ class Notification(BaseModel):
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
     first_name = sa.Column(sa.VARCHAR(50), nullable=True)
     last_name = sa.Column(sa.VARCHAR(50), nullable=True)
-    type = sa.Column(sa.String(length=13), nullable=False)  # TODO: to number
+    type = sa.Column(sa.String(length=14), nullable=False)  # TODO: to number
     initiative_id = sa.Column(sa.UUID(as_uuid=True), sa.ForeignKey("initiatives.id", ondelete="CASCADE"), nullable=True)
     initiative_image = sa.Column(sa.VARCHAR(500), nullable=True)
 

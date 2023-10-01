@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, load_only
+
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
@@ -13,11 +14,11 @@ from voices.utils import count_max_length
 class User(BaseDatetimeModel):
     __tablename__ = "users"
 
-    class Role(StrEnum):
+    class Role(StrEnum):  # TODO: all enum to numbers
         CITIZEN = "citizen"
         GOVERNMENT = "government"
 
-    class City(StrEnum):
+    class City(StrEnum):  # TODO: all enum to numbers
         YAROSLAVL = "Ярославль"
         ROSTOB = "Ростов"
         TUTAEV = "Тутаев"

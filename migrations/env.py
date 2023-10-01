@@ -1,16 +1,29 @@
 from alembic import context
 from sqlalchemy import create_engine
 
+# TODO: autoupload all files with names models
+from voices.app.auth.models import *  # noqa
+from voices.app.friends.models import *  # noqa
+from voices.app.initiatives.models import *  # noqa
+from voices.app.notifications.models import *  # noqa
 from voices.config import settings
 from voices.db import Base
 
 config = context.config
 
-from voices.app.auth.models import *  # noqa
-from voices.app.friends.models import *  # noqa
-from voices.app.initiatives.models import *  # noqa
-
-IGNORE_TABLES = ("spatial_ref_sys",)
+IGNORE_TABLES = {
+    "spatial_ref_sys",
+    "django_admin_log",
+    "auth_user",
+    "auth_permission",
+    "django_session",
+    "django_migrations",
+    "auth_group_permissions",
+    "django_content_type",
+    "auth_user_user_permissions",
+    "auth_user_groups",
+    "auth_group",
+}
 
 
 def include_object(object, name, type_, reflected, compare_to):

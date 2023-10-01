@@ -44,15 +44,14 @@ async def get_feed(
     role: User.Role | None = None,
     last_id: uuid.UUID | None = None,
     status: Initiative.Status | None = None,
-    city: str = "Ярославль",
     search: str | None = None,
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
+    city = "Ярославль"
     async with Transaction():
-        # TODO: city
         if token:
-            user = await User.get_by_id(token.sub)
+            user = await User.get_by_id(token.sub)  # TODO: get from token
             city = user.city or "Ярославль"
         feed = await Initiative.get_feed(
             city=city,
@@ -84,16 +83,37 @@ async def get_feed(
     )
 
 
+@router.get("/initiatives/actual", response_model=Response[InitiativeListView])
+async def get_feed_actual(
+    last_id: uuid.UUID | None = None,
+    token: TokenData | None = Depends(JWTBearer(required=False)),
+):
+    city = "Ярославль"
+    async with Transaction():
+        if token:
+            user = await User.get_by_id(token.sub)  # TODO: city number to token (e.g. 1 - Yaroslavl)
+            city = user.city or "Ярославль"
+        feed = await Initiative.get_actual(city=city, last_id=last_id)
+        total = await Initiative.get_actual(city=city, last_id=last_id, is_total=True)
+
+    return Response(
+        payload=InitiativeListView(
+            feed=feed,
+            pagination=PaginationView(count=len(feed), total=total),
+        )
+    )
+
+
 @router.get("/initiatives/maps", response_model=Response[InitiativeListView])
 async def get_feed_maps(
     category: Initiative.Category | None = None,
     role: User.Role | None = None,
     status: Initiative.Status | None = None,
-    city: str = "Ярославль",
     search: str | None = None,
     token: TokenData | None = Depends(JWTBearer(required=False)),
 ):
     user_id = token.sub if token else None
+    city = "Ярославль"
     async with Transaction():
         # TODO: city
         if token:
@@ -197,7 +217,7 @@ async def create_initiative(
             city = user.city or "Ярославль"
         else:
             city = "Ярославль"
-        await Initiative.create(
+        initiative_id = await Initiative.create(
             city=city,
             user_id=user.id,
             images=body.images,
@@ -208,6 +228,17 @@ async def create_initiative(
             event_direction=body.event_direction,
             ar_model=body.ar_model,
         )
+
+    send_notification.apply_async(
+        kwargs=dict(
+            user_id_send=token.sub,
+            user_id_get=token.sub,
+            status=EventName.POST_CREATED,
+            initiative_image=body.images[0],
+            initiative_id=initiative_id,
+        ),
+        retry=False,
+    )
 
     return Response()
 
@@ -244,7 +275,7 @@ async def get_initiative(
     "/initiatives/{initiative_id}",
     response_model=Response,
     responses={
-        status.HTTP_200_OK: {
+        status.HTTP_200_OK: {  # TODO: all routes with responses schema
             "model": Response,
             "description": "Ok Response",
         },
