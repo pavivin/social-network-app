@@ -5,8 +5,21 @@ from email.mime.text import MIMEText
 from voices.config import settings
 
 # TODO: to email class
-with open("data/email/confirm_email.html") as f:
-    html = f.read().strip()
+# TODO: to file
+html = """
+<html>
+
+<head></head>
+
+<body>
+    <p>Для получения доступа ко всем возможностям приложения "Мой Ярославль"<br>
+        подтвердите адрес электронной почты<br>
+        <a href="voices-city.ru/api/confirm-email/{user_id}/{email_token}">Подтвердить email</a>
+    </p>
+</body>
+
+</html>
+""".strip()
 
 
 # TODO: understand SMTP session (reuse connection, classes)
