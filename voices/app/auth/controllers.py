@@ -157,7 +157,7 @@ async def get_profile(token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         user = await User.get_by_id(id=token.sub)
 
-    return Response(payload=ProfileView.from_orm(user))
+    return Response(payload=OwnProfileView.from_orm(user))
 
 
 @router.get("/profile/{user_id}", response_model=Response[ProfileView])
