@@ -1,16 +1,6 @@
 from voices.broker import app
+from voices.mail.confirm_email import confirm_email_task
 
 from .notification import send_notification
 
-
-@app.on_after_configure.connect
-def test_task(sender, **kwargs):
-    test.s("Look at me Hector")
-
-
-@app.task
-def test(arg):
-    print(arg)
-
-
-CELERY_IMPORTS = [test, send_notification, test_task]
+CELERY_IMPORTS = [send_notification, confirm_email_task]

@@ -2,6 +2,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from voices.broker import app
 from voices.config import settings
 
 # TODO: to email class
@@ -42,3 +43,12 @@ def confirm_email(user_id: str, email_token: str, recipient_email: str):
     mail.login(user=settings.MAIL_SENDER_EMAIL, password=settings.MAIL_SENDER_PASSWORD)
     mail.sendmail(settings.MAIL_SENDER_EMAIL, recipient_email, msg.as_string())
     mail.quit()
+
+
+@app.task(name="confirm_email")
+def confirm_email_task(user_id: str, email_token: str, recipient_email: str):
+    confirm_email(
+        user_id=user_id,
+        email_token=email_token,
+        recipient_email=recipient_email,
+    )
