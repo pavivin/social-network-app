@@ -67,6 +67,19 @@ class ProfileView(BaseModel):
     email: str
 
 
+class OwnProfileView(BaseModel):
+    id: uuid.UUID | str
+    first_name: str | None = None
+    last_name: str | None = None
+    image_url: AnyUrl | None = None
+    city: str | None = None
+    district: str | None = None
+    birthdate: date | None = None
+    relationship_type: str | None = None
+    email: str
+    email_approved: bool
+
+
 class UserView(BaseModel):
     id: uuid.UUID | str
     first_name: str = "unknown"

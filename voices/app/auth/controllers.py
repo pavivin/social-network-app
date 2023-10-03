@@ -25,6 +25,7 @@ from .models import User
 from .views import (
     CheckUserLogin,
     CityListView,
+    OwnProfileView,
     ProfileUpdateView,
     ProfileView,
     Token,
@@ -151,7 +152,7 @@ async def update_profile(body: ProfileUpdateView, token: TokenData = Depends(JWT
     return Response(payload=ProfileView.from_orm(user))
 
 
-@router.get("/profile", response_model=Response[ProfileView])
+@router.get("/profile", response_model=Response[OwnProfileView])
 async def get_profile(token: TokenData = Depends(JWTBearer())):
     async with Transaction():
         user = await User.get_by_id(id=token.sub)
