@@ -182,6 +182,7 @@ async def get_user_profile(user_id: str, token: TokenData = Depends(JWTBearer())
             district=user.district,
             birthdate=user.birthdate,
             relationship_type=friend.relationship_type if friend else None,
+            email=user.email,
         )
     )
 

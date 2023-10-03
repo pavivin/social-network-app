@@ -64,6 +64,7 @@ class ProfileView(BaseModel):
     district: str | None = None
     birthdate: date | None = None
     relationship_type: str | None = None
+    email: str
 
 
 class UserView(BaseModel):

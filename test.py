@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import requests
 from websockets.sync.client import connect
@@ -10,7 +11,7 @@ def login_api():
     return requests.post(
         "https://voices-city.ru/api/login",
         json={
-            "email": "pashok@example.com",
+            "email": "user1@example.com",
             "password": "string",
         },
     ).json()
@@ -22,39 +23,39 @@ def _request(data: dict):
     websocket.send(msg)
     message = websocket.recv()
     print(f"> RECEIVED: {message}")
+    if message == '{"msg":"ping"}':
+        websocket.send('{"msg":"pong"}')
+        message = websocket.recv()
+        print(f"> RECEIVED: {message}")
+    if message.startswith('{"msg":"updated","methods"'):
+        message = websocket.recv()
+        print(f"> RECEIVED: {message}")
+
     return json.loads(message)
 
 
 def connect_chat():
-    _request(
-        data={
-            "msg": "connect",
-            "version": "1",
-            "support": ["1"],
-        }
-    )
+    _request(data={"msg": "connect", "version": "1", "support": ["1"]})
 
 
 def login_chat(token: str):
-    _request(
+    return _request(
         data={
             "msg": "method",
             "method": "login",
             "params": [{"resume": token}],
-            "id": "42",
+            "id": uuid.uuid4().hex,
         }
     )
 
 
 def create_chat(user_id: str):
-    return _request(
-        data={
-            "msg": "method",
-            "method": "createDirectMessage",
-            "id": "42",
-            "params": [user_id],
-        }
+    _request(
+        data={"msg": "method", "method": "createDirectMessage", "id": uuid.uuid4().hex, "params": [user_id]},
     )
+    message = websocket.recv()
+    message = websocket.recv()
+    return json.loads(message)
 
 
 def send_message(room_id: str, msg: str = "foo"):
@@ -62,19 +63,43 @@ def send_message(room_id: str, msg: str = "foo"):
         data={
             "msg": "method",
             "method": "sendMessage",
-            "id": "423",
+            "id": uuid.uuid4().hex,
             "params": [{"rid": room_id, "msg": msg}],
         }
     )
 
 
-def load_history(user_id: str, last_date: str, limit: str = 50):
+def load_history(room_id: str, last_date: str, limit: str = 50):
+    # https://developer.rocket.chat/reference/api/realtime-api/method-calls/rooms/load-history
     return _request(
         data={
             "msg": "method",
             "method": "loadHistory",
-            "id": "42",
-            "params": [user_id, {"$date": 0}, limit, {"$date": last_date}],
+            "id": uuid.uuid4().hex,
+            "params": [room_id, {"$date": last_date}, limit, {"$date": 0}],
+        }
+    )
+
+
+def stream_messages(room_id: str):
+    # https://developer.rocket.chat/reference/api/realtime-api/subscriptions/streamlivechatroom
+    return _request(
+        data={
+            "msg": "sub",
+            "id": uuid.uuid4().hex,
+            "name": "stream-room-messages",
+            "params": [room_id, False],
+        }
+    )
+
+
+def stream_notify_room(room_id: str):
+    return _request(
+        {
+            "msg": "sub",
+            "id": uuid.uuid4().hex,
+            "name": "stream-notify-room",
+            "params": [f"{room_id}/event", False],
         }
     )
 
@@ -84,7 +109,7 @@ def get_rooms():
         {
             "msg": "method",
             "method": "rooms/get",
-            "id": "42",
+            "id": uuid.uuid4().hex,
             "params": [{"$date": 0}],
         }
     )
@@ -96,12 +121,16 @@ with connect(SOCKET_URL) as websocket:
     user_id = login_data["payload"]["rocketchatUserId"]
     # ----------------- API -----------------
     connect_chat()
-    login_chat(token=auth_token)
+    chat_login_data = login_chat(token=auth_token)
+    # chat_token = chat_login_data['id']
     # ----------------- CONNECT TO SOCKET -----------------
     chat_data = create_chat(user_id=user_id)
-    room_id = chat_data["result"]["id"]
+    room_id = chat_data["result"]["rid"]
     msg_info = send_message(room_id=room_id)
-    last_date = msg_info["date"]
-    load_history(user_id=user_id, last_date=last_date)
+    last_date = msg_info["result"]["ts"]["$date"]
+    load_history(room_id=room_id, last_date=last_date)
     # ----------------- CHAT -----------------
-    _request
+    # stream_messages(room_id=room_id)
+    stream_notify_room(room_id=room_id)
+    # ROOMS
+    get_rooms()
