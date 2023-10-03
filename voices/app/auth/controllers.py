@@ -135,7 +135,7 @@ async def post_refresh_token(body: Token):
             access_token=access_token,
             refresh_token=refresh_token,
             rocketchat_user_id=user.id.hex,
-            rocketchat_auth_token=None,
+            rocketchat_auth_token="",
             exp=exp,
         ),
     )
