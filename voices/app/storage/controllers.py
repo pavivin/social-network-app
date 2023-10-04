@@ -66,4 +66,6 @@ async def get_file(filename: str):
     if not os.path.exists(f"data/{filename}"):
         raise NotFoundError
 
+    if filename.endswith(".gltf"):
+        return FileResponse(f"data/{filename}", media_type="application/octet-stream")
     return FileResponse(f"data/{filename}")
