@@ -77,7 +77,7 @@ class OwnProfileView(BaseModel):
     birthdate: date | None = None
     relationship_type: str | None = None
     email: str
-    email_approved: bool
+    email_approved: bool = False
 
 
 class UserView(BaseModel):
