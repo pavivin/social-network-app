@@ -365,7 +365,8 @@ class InitiativeLike(BaseModel):
     async def post_like(initiative_id: uuid.UUID, user_id: uuid.UUID):
         try:
             query = sa.insert(InitiativeLike).values(
-                InitiativeLike.initiative_id == initiative_id, InitiativeLike.user_id == user_id
+                initiative_id=initiative_id,
+                user_id=user_id,
             )
             return await db_session.get().execute(query)
         except IntegrityError:
