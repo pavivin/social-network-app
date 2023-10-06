@@ -69,10 +69,10 @@ class Settings(BaseSettings):
 
     DEFAULT_CITY: str = "Ярославль"
 
-    MAIL_SENDER_EMAIL: str
-    MAIL_SENDER_PASSWORD: str
-    MAIL_SENDER_DOMAIN: str
-    MAIL_SENDER_PORT: int
+    MAIL_SENDER_EMAIL: str = "no-reply@voices-city.ru"
+    MAIL_SENDER_PASSWORD: str = "eBG-zC3-wc3-Nbw"
+    MAIL_SENDER_DOMAIN: str = "mail.hosting.reg.ru"
+    MAIL_SENDER_PORT: int = 465
 
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
