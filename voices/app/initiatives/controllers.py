@@ -366,7 +366,7 @@ async def post_comment(
         send_notification.apply_async(
             kwargs=dict(
                 user_id_send=token.sub,
-                user_id_get=user_id_get,
+                user_id_get=str(user_id_get),
                 status=notification_status,
                 initiative_image=initiative.images[0],
                 initiative_id=initiative.id,
