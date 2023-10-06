@@ -19,6 +19,7 @@ class TokenView(BaseModel):
     rocketchat_user_id: str
     rocketchat_auth_token: str
     exp: datetime
+    user_id: str
 
 
 class TokenData(BaseModel):

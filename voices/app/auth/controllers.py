@@ -70,6 +70,7 @@ async def register_user(body: UserRegister):
                 rocketchat_user_id=user.id.hex,
                 rocketchat_auth_token=json_response["data"]["authToken"],
                 exp=exp,
+                user_id=str(user.id),
             ),
         )
 
@@ -115,6 +116,7 @@ async def authenticate_user(body: UserLogin):
             rocketchat_user_id=user.id.hex,
             rocketchat_auth_token=json_response.get("data", {}).get("authToken", ""),
             exp=exp,
+            user_id=str(user.id),
         ),
     )
 
@@ -138,6 +140,7 @@ async def post_refresh_token(body: Token):
             rocketchat_user_id=user.id.hex,
             rocketchat_auth_token="",
             exp=exp,
+            user_id=str(user.id),
         ),
     )
 
