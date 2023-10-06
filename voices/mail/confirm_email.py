@@ -36,12 +36,10 @@ def confirm_email(user_id: str, email_token: str, recipient_email: str):
     msg.attach(part)
     mail = smtplib.SMTP(settings.MAIL_SENDER_DOMAIN, settings.MAIL_SENDER_PORT)
 
-    mail.ehlo()
-
+    mail.set_debuglevel(True)
     mail.starttls()
-
-    mail.login(user=settings.MAIL_SENDER_EMAIL, password=settings.MAIL_SENDER_PASSWORD)
-    mail.sendmail(settings.MAIL_SENDER_EMAIL, recipient_email, msg.as_string())
+    mail.login(settings.MAIL_SENDER_EMAIL, settings.MAIL_SENDER_PASSWORD)
+    mail.send_message(msg)
     mail.quit()
 
 
