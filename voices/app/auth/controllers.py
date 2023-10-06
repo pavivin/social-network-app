@@ -1,4 +1,3 @@
-from celery import signature
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 
@@ -19,6 +18,7 @@ from voices.auth.jwt_token import (
 )
 from voices.chat import create_user, login_user
 from voices.db.connection import Transaction
+from voices.mail.confirm_email import async_confirm_email
 from voices.redis import Redis
 
 from .models import User
@@ -205,9 +205,10 @@ async def send_confirm_email(token: TokenData = Depends(JWTBearer())):
         user_email = await User.get_email_by_id(id=user_id)
 
     email_token = await Redis.generate_confirm_email_token(user_id=user_id)
-    signature("confirm_email").apply_async(
-        kwargs=dict(user_id=user_id, email_token=email_token, recipient_email=user_email),
-    )
+    await async_confirm_email(user_id=user_id, email_token=email_token, recipient_email=user_email)
+    # signature("confirm_email").apply_async(
+    #     kwargs=dict(user_id=user_id, email_token=email_token, recipient_email=user_email),
+    # )
     return Response()
 
 
