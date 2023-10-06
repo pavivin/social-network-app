@@ -14,9 +14,9 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.MAIL_SENDER_PORT,
     MAIL_SERVER=settings.MAIL_SENDER_DOMAIN,
     MAIL_STARTTLS=False,
-    MAIL_SSL_TLS=True,
+    MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True,
+    VALIDATE_CERTS=False,
 )
 
 
