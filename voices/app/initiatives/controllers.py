@@ -5,10 +5,9 @@ from fastapi import APIRouter, Depends, status
 
 from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
-from voices.app.core.exceptions import (
+from voices.app.core.exceptions import (  # NeedEmailConfirmation,
     AlreadyVotedError,
     ForbiddenError,
-    NeedEmailConfirmation,
     ObjectNotFoundError,
     ObsceneLanguageError,
     ValidationError,
@@ -219,8 +218,8 @@ async def create_initiative(
         else:
             city = settings.DEFAULT_CITY
 
-        if not user.email_approved:
-            raise NeedEmailConfirmation
+        # if not user.email_approved:
+        #     raise NeedEmailConfirmation
 
         initiative_id = await Initiative.create(
             city=city,
