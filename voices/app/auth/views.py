@@ -52,7 +52,7 @@ class ProfileUpdateView(BaseModel):
     image_url: AnyUrl | None = None
     city: str | None = None
     district: str | None = None
-    phone: str
+    phone: str | None = None
     birthdate: date | None = None
 
 
