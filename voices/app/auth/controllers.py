@@ -163,6 +163,14 @@ async def get_profile(token: TokenData = Depends(JWTBearer())):
     return Response(payload=OwnProfileView.from_orm(user))
 
 
+@router.delete("/profile", response_model=Response[ProfileView])  # TODO: to profile module
+async def delete_profile(token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await User.delete_profile(user_id=token.sub)
+
+    return Response()
+
+
 @router.get("/profile/{user_id}", response_model=Response[ProfileView])
 async def get_user_profile(user_id: str, token: TokenData = Depends(JWTBearer())):
     async with Transaction():

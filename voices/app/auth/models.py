@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 from functools import lru_cache
 
@@ -55,6 +55,7 @@ class User(BaseDatetimeModel):
         query = (
             sa.select(User)
             .where(User.email == email)
+            .where(User.deleted_at.is_(None))
             .options(load_only(User.id, User.email, User.role, User.hashed_password))
         )
         result = (await db_session.get().execute(query)).scalars().first()
@@ -62,13 +63,13 @@ class User(BaseDatetimeModel):
 
     @staticmethod
     async def get_email_by_id(id: uuid.UUID):
-        query = sa.select(User.email).where(User.id == id)
+        query = sa.select(User.email).where(User.id == id).where(User.deleted_at.is_(None))
         result = await db_session.get().execute(query)
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_id(id: uuid.UUID):
-        query = sa.select(User).where(User.id == id)
+        query = sa.select(User).where(User.id == id).where(User.deleted_at.is_(None))
         result = (await db_session.get().execute(query)).scalars().first()
         return result
 
@@ -93,6 +94,11 @@ class User(BaseDatetimeModel):
         return (await db_session.get().execute(query)).scalar()
 
     @staticmethod
+    async def delete_profile(user_id: str):
+        query = sa.update(User).values(deleted_at=datetime.now()).where(User.id == user_id)
+        return (await db_session.get().execute(query)).scalar()
+
+    @staticmethod
     async def confirm_email(user_id: str):
         query = sa.update(User).values(email_approved=True).where(User.id == user_id)
         return await db_session.get().execute(query)
@@ -109,7 +115,7 @@ class User(BaseDatetimeModel):
                     sa.func.lower(User.last_name).contains(normalized_pattern),
                 )
                 & (User.city == city)  # TODO: city to indexed number
-            )
+            ).where(User.deleted_at.is_(None))
         if last_id:
             query = query.where(User.id < last_id)
         result = await db_session.get().execute(query)
