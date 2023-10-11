@@ -189,18 +189,18 @@ async def get_my(
             city = settings.DEFAULT_CITY
         feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)
         total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)
-        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(liked)
+        # liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        # set_liked = set(liked)
 
-    response = []
-    for initiative in feed:
-        initiative.is_liked = initiative.id in set_liked
-        initiative.survey = await Survey.get(initiative.id)
-        response.append(initiative)
+    # response = []
+    # for initiative in feed:
+    #     initiative.is_liked = initiative.id in set_liked
+    #     initiative.survey = await Survey.get(initiative.id)
+    #     response.append(initiative)
 
     return Response(
         payload=InitiativeListView(
-            feed=response,
+            feed=feed,
             pagination=PaginationView(count=len(feed), total=total),
         )
     )

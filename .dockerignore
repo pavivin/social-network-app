@@ -7,3 +7,4 @@ README.md
 .helm/
 .dockerignore
 .env
+env/
