@@ -83,8 +83,8 @@ class Initiative(BaseDatetimeModel):
         )
         await db_session.get().execute(query)
 
-    @classmethod
-    async def increment_comments_count(cls, initiative_id: str):
+    @staticmethod
+    async def increment_comments_count(initiative_id: str):
         query = (
             sa.update(Initiative)
             .where(Initiative.id == initiative_id)

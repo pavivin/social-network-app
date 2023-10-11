@@ -66,6 +66,7 @@ class ProfileView(BaseModel):
     birthdate: date | None = None
     relationship_type: str | None = None
     email: str
+    phone: str | None = None
 
 
 class OwnProfileView(BaseModel):
@@ -79,6 +80,7 @@ class OwnProfileView(BaseModel):
     relationship_type: str | None = None
     email: str
     email_approved: bool = False
+    phone: str | None = None
 
 
 class UserView(BaseModel):
