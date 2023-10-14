@@ -52,7 +52,7 @@ class Survey(BaseDocument):
     async def get_surveys(cls, feed, token, set_liked=None):
         response = []
         for initiative in feed:
-            initiative.is_liked = initiative.id in set_liked if set_liked else True
+            initiative.is_liked = initiative.id in set_liked if set_liked else False
             initiative.survey = await Survey.get(initiative.id)
             if token:
                 answer = await SurveyAnswer.find(
