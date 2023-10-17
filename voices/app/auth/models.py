@@ -96,7 +96,7 @@ class User(BaseDatetimeModel):
     @staticmethod
     async def delete_profile(user_id: str):
         query = sa.update(User).values(deleted_at=datetime.now()).where(User.id == user_id)
-        return (await db_session.get().execute(query)).scalar()
+        return await db_session.get().execute(query)
 
     @staticmethod
     async def confirm_email(user_id: str):
