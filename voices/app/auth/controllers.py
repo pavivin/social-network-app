@@ -90,7 +90,7 @@ async def authenticate_user(body: UserLogin):
     async with Transaction():
         user = await User.get_by_email(body.email)
 
-    if not user:
+    if not user or user.deleted_at:
         raise UserNotFoundError
     if not verify_password(body.password, user.hashed_password):
         raise PasswordMatchError

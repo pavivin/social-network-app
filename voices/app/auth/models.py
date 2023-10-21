@@ -55,7 +55,6 @@ class User(BaseDatetimeModel):
         query = (
             sa.select(User)
             .where(User.email == email)
-            .where(User.deleted_at.is_(None))
             .options(load_only(User.id, User.email, User.role, User.hashed_password))
         )
         result = (await db_session.get().execute(query)).scalars().first()
