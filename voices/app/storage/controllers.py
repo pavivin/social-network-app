@@ -22,7 +22,7 @@ class Storage:
         filename = uuid7().hex
         if file_ext in settings.ALLOWED_PHOTO_TYPES:
             webp_image = Image.open(io.BytesIO(file_data))
-            webp_image.save(f"data/{filename}-max.webp", format="Webp")
+            webp_image.save(f"data/{filename}.webp", format="Webp")
             mini_image = webp_image.resize(size=(100, 100))
             mini_image.save(f"data/{filename}-100x100.webp", format="Webp")
             return f"{filename}.webp"
