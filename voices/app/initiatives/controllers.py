@@ -26,6 +26,7 @@ from voices.app.initiatives.views import (
     CreateInitiativeVew,
     InitiativeDetailedView,
     InitiativeListView,
+    InitiativeView,
     SurveyCreate,
     SurveyVoteView,
 )
@@ -135,8 +136,9 @@ async def get_feed_maps(
 
     response = []
     for initiative in feed:
-        initiative.is_liked = initiative.id in set_liked
-        response.append(initiative)
+        initiative_view = InitiativeView.from_orm(initiative)
+        initiative_view.is_liked = initiative_view.id in set_liked
+        response.append(initiative_view)
 
     return Response(
         payload=InitiativeListView(
@@ -162,9 +164,10 @@ async def get_favorites(
 
     response = []
     for initiative in feed:  # TODO: rewrite
-        initiative.is_liked = True
-        initiative.survey = await Survey.get(initiative.id)
-        response.append(initiative)
+        initiative_view = InitiativeView.from_orm(initiative)
+        initiative_view.is_liked = True
+        initiative_view.survey = await Survey.get(initiative_view.id)
+        response.append(initiative_view)
 
     return Response(
         payload=InitiativeListView(
@@ -189,14 +192,15 @@ async def get_my(
             city = settings.DEFAULT_CITY
         feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)
         total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)
-        # liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        # set_liked = set(liked)
+        liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_liked = set(liked)
 
-    # response = []
-    # for initiative in feed:
-    #     initiative.is_liked = initiative.id in set_liked
-    #     initiative.survey = await Survey.get(initiative.id)
-    #     response.append(initiative)
+    response = []
+    for initiative in feed:
+        initiative_view = InitiativeView.from_orm(initiative)
+        initiative_view.is_liked = initiative_view.id in set_liked
+        initiative_view.survey = await Survey.get(initiative_view.id)
+        response.append(initiative_view)
 
     return Response(
         payload=InitiativeListView(
