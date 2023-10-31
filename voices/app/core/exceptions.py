@@ -92,12 +92,12 @@ class PasswordMatchError(ApiException):
     message = "Password doesn't match"
 
 
-class FileTooLargeError(ApiException):
+class UnsupportedFileTypeError(ApiException):
     status_code = 400
     message = f"Provide only: {settings.ALLOWED_UPLOAD_TYPES}"
 
 
-class UnsupportedFileTypeError(ApiException):
+class FileTooLargeError(ApiException):
     status_code = 400
     message = f"Max file size: {settings.FILE_MAX_SIZE_MB} Mb"
 

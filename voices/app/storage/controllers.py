@@ -1,5 +1,5 @@
+import io
 import os
-from io import BytesIO
 
 import aiofiles
 from fastapi import APIRouter, UploadFile
@@ -18,30 +18,24 @@ from voices.config import settings
 
 class Storage:
     @classmethod
-    def compress_jpeg(cls, file_data: bytes, filename: str):
-        foo = Image.open(BytesIO(file_data))
+    async def create(cls, file_ext: str, file_data: bytes):
+        filename = uuid7().hex
+        if file_ext in settings.ALLOWED_PHOTO_TYPES:
+            webp_image = Image.open(io.BytesIO(file_data))
+            webp_image.save(f"data/{filename}-max.webp", format="Webp")
+            mini_image = webp_image.resize(size=(100, 100))
+            mini_image.save(f"data/{filename}-100x100.webp", format="Webp")
+            return f"{filename}.webp"
 
-        foo = foo.resize((foo.size), Image.LANCZOS)
-
-        foo.save(f"data/{filename}", optimize=True, quality=80)
-
-    @classmethod
-    def get_filename(cls, file_ext: str):
-        return f"{uuid7().hex}.{file_ext}"
-
-    @classmethod
-    async def create(cls, filename: str, file_ext: str, file_data: bytes):
-        if file_ext == "jpg":
-            cls.compress_jpeg(file_data=file_data, filename=filename)
-        else:
-            async with aiofiles.open(f"data/{filename}", mode="wb") as f:
-                await f.write(file_data)
+        full_path = f"{filename}.{file_ext}"
+        async with aiofiles.open(f"data/{full_path}", mode="wb") as f:
+            await f.write(file_data)
+        return full_path
 
 
 router = APIRouter()
 
 
-# TODO: to webp
 @router.post("/storage", response_model=Response)
 async def add_file(upload_file: UploadFile):
     file_ext = upload_file.filename.split(".")[-1].lower()
@@ -54,9 +48,7 @@ async def add_file(upload_file: UploadFile):
     if len(file_data) > settings.FILE_MAX_SIZE_KB:
         raise FileTooLargeError
 
-    filename = Storage.get_filename(file_ext)
-
-    await Storage.create(filename=filename, file_ext=file_ext, file_data=file_data)
+    filename = await Storage.create(file_ext=file_ext, file_data=file_data)
 
     return Response(payload=filename)
 
