@@ -59,9 +59,13 @@ async def firebase_notifications(
             "first_name": user.first_name,
             "last_name": user.last_name,
             "type": status,
-            "initiative_image": initiative_image,
-            "initiative_id": str(initiative_id),
         }
+
+        if initiative_id:
+            data_send["initiative_id"] = str(initiative_id)
+        if initiative_image:
+            data_send["initiative_image"] = initiative_image
+
         await Notification.create(
             owner_id=user_id_get,
             text=text,
