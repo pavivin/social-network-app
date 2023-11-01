@@ -10,6 +10,12 @@ from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
 from voices.utils import count_max_length
 
+CITY_MAPPING = {  # TODO: to EN naming
+    "Ярославль": 1,
+    "Ростов": 2,
+    "Тутаев": 3,
+}
+
 
 class User(BaseDatetimeModel):
     __tablename__ = "users"

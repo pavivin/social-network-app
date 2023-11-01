@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, datetime
 
+import pydantic
 from pydantic import AnyUrl, Field, root_validator
 
 from voices.app.core.exceptions import ValidationError
@@ -57,14 +58,18 @@ class SurveyView(BaseModel):
 
 
 class UserView(BaseModel):
-    id: uuid.UUID | str
+    id: str
     first_name: str = "unknown"
     last_name: str = "user"
     image_url: str | None
 
+    @pydantic.validator("id", pre=True)
+    def convert_id(cls, v, values, **kwargs):
+        return str(v)
+
 
 class InitiativeView(BaseModel):
-    id: str | uuid.UUID
+    id: str
     user: UserView
     city: str
     images: list | dict | None
@@ -75,10 +80,22 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
-    created_at: datetime
+    created_at: str | datetime
     is_liked: bool = False
     tags: list[str] | None
     survey: SurveyView | None = None
+
+    @pydantic.validator("id", pre=True)
+    def convert_id(cls, v: uuid.UUID, values, **kwargs):
+        return str(v)
+
+    @pydantic.validator("created_at", pre=True)
+    def convert_datetime(cls, v: datetime, values, **kwargs):
+        if isinstance(v, datetime):
+            return v.isoformat()
+        if isinstance(v, str):
+            return v
+        raise ValidationError
 
 
 class InitiativeDetailedView(InitiativeView):

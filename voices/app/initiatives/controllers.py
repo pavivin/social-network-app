@@ -1,9 +1,10 @@
+import json
 import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, status
 
-from voices.app.auth.models import User
+from voices.app.auth.models import CITY_MAPPING, User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (  # NeedEmailConfirmation,
     AlreadyVotedError,
@@ -36,6 +37,7 @@ from voices.config import settings
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
 from voices.mongo.models import Survey, SurveyAnswer, SurveyType
+from voices.redis import Redis
 
 router = APIRouter()
 
@@ -55,6 +57,19 @@ async def get_feed(
         if token:
             user = await User.get_by_id(token.sub)  # TODO: get from token
             city = user.city or settings.DEFAULT_CITY
+        # cache prefix: i
+        cache_key = f"i:{CITY_MAPPING[city]}" if not token else f"i:{CITY_MAPPING[city]}{token.sub}"
+        cached = await Redis.con.get(cache_key)
+        cached_total = await Redis.con.get(f"it:{CITY_MAPPING[city]}")  # TODO: to one call
+        if cached and cached_total:
+            dict_initiatives = json.loads(cached)
+            return Response(
+                payload=InitiativeListView(
+                    feed=[InitiativeView.parse_obj(item) for item in dict_initiatives],
+                    pagination=PaginationView(count=len(dict_initiatives), total=cached_total),
+                )
+            )
+
         feed = await Initiative.get_feed(
             city=city,
             category=category,
@@ -69,13 +84,23 @@ async def get_feed(
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
-    response = []
+    response: list[InitiativeView] = []
     for initiative in feed:
-        initiative.is_liked = initiative.id in set_liked
-        survey = await Survey.get(initiative.id)
+        initiative_view = InitiativeView.from_orm(initiative)
+        initiative_view.is_liked = initiative_view.id in set_liked
+        survey = await Survey.get(initiative_view.id)
         if survey:
-            initiative.survey = dict(survey)
-        response.append(initiative)
+            initiative_view.survey = dict(survey)
+        response.append(initiative_view)
+
+    dict_initiatives = []
+    for item in response:
+        dict_item = dict(item)
+        dict_item["user"] = dict(item.user)
+        dict_initiatives.append(dict_item)
+
+    await Redis.con.set(name=cache_key, value=json.dumps(dict_initiatives), ex=60)
+    await Redis.con.set(name=f"it:{CITY_MAPPING[city]}", value=total, ex=60)
 
     return Response(
         payload=InitiativeListView(
