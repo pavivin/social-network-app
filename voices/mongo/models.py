@@ -14,6 +14,7 @@ class SurveyType(StrEnum):
     ONE_LINE = "one_line"
     MULTI_LINE = "multi_line"
     CHOOSE_ONE = "choose_one"
+    CHOOSE_YES_NO = "choose_yes_no"
     CHOOSE_MULTIPLY = "choose_multiply"
 
 

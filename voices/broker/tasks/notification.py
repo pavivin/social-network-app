@@ -1,7 +1,9 @@
+import uuid
 from datetime import datetime
 from enum import StrEnum
 
 from firebase_admin import messaging
+from firebase_admin.exceptions import FirebaseError
 
 from voices.app.auth.models import User
 from voices.app.notifications.models import FirebaseApp, Notification
@@ -39,7 +41,11 @@ assert len(EventName) == len(status_text)  # TODO: to tests
 
 
 async def firebase_notifications(
-    user_id_send: str, user_id_get: str, status: EventName, initiative_image: str = None, initiative_id: str = None
+    user_id_send: str,
+    user_id_get: str,
+    status: EventName,
+    initiative_image: str = None,
+    initiative_id: uuid.UUID = None,
 ):
     async with Transaction():
         tokens = await FirebaseApp.get_tokens(user_id_get)
@@ -49,12 +55,12 @@ async def firebase_notifications(
             "text": text,
             "picture": user.image_url,  # TODO: remove
             "avatar_url": user.image_url,
-            "time": datetime.now(),
+            "time": datetime.now().isoformat(),
             "first_name": user.first_name,
             "last_name": user.last_name,
             "type": status,
             "initiative_image": initiative_image,
-            "initiative_id": initiative_id,
+            "initiative_id": str(initiative_id),
         }
         await Notification.create(
             owner_id=user_id_get,
@@ -69,11 +75,14 @@ async def firebase_notifications(
         )
         response = None
         for token in tokens:
-            message = messaging.Message(
-                data=data_send,
-                token=token,
-            )
-            response = messaging.send(message, app=app_firebase)
+            try:
+                message = messaging.Message(
+                    data=data_send,
+                    token=token,
+                )
+                response = messaging.send(message, app=app_firebase)
+            except FirebaseError:
+                ...
     return response
 
 
