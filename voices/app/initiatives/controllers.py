@@ -58,7 +58,7 @@ async def get_feed(
             user = await User.get_by_id(token.sub)  # TODO: get from token
             city = user.city or settings.DEFAULT_CITY
         # cache prefix: i
-        cache_key = f"i:{CITY_MAPPING[city]}" if not token else f"i:{CITY_MAPPING[city]}{token.sub}{last_id}"
+        cache_key = f"i:{CITY_MAPPING[city]}:{user_id or ''}:{last_id or ''}:{category or ''}:{search or ''}"
         cached = await Redis.con.get(cache_key)
         cached_total = await Redis.con.get(f"it:{CITY_MAPPING[city]}")  # TODO: to one call
         if cached and cached_total:
