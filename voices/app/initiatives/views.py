@@ -99,7 +99,7 @@ class InitiativeView(BaseModel):
 
 
 class InitiativeDetailedView(InitiativeView):
-    id: str | uuid.UUID
+    id: str
     user: UserView
     city: str
     images: list | dict | None
@@ -117,6 +117,10 @@ class InitiativeDetailedView(InitiativeView):
     tags: list[str] | None
     ar_model: str | None
 
+    @pydantic.validator("id", pre=True)
+    def convert_id(cls, v: uuid.UUID, values, **kwargs):
+        return str(v)
+
 
 class InitiativeListView(BaseModel):
     feed: list[InitiativeView]
@@ -124,10 +128,14 @@ class InitiativeListView(BaseModel):
 
 
 class CommentView(BaseModel):
-    id: uuid.UUID
+    id: str
     created_at: str | datetime
     user: UserView
     main_text: str
+
+    @pydantic.validator("id", pre=True)
+    def convert_id(cls, v: uuid.UUID, values, **kwargs):
+        return str(v)
 
 
 class CommentReplyView(CommentView):
