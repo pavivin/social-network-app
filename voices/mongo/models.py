@@ -1,6 +1,7 @@
 import uuid
 from enum import StrEnum
 
+import pydantic
 from beanie import Document
 from pydantic import Field
 from uuid_extensions import uuid7
@@ -8,6 +9,10 @@ from uuid_extensions import uuid7
 
 class BaseDocument(Document):
     id: uuid.UUID = Field(default_factory=uuid7)
+
+    @pydantic.validator("id", pre=True)
+    def convert_id(cls, v: uuid.UUID, values, **kwargs):
+        return str(v)
 
 
 class SurveyType(StrEnum):
