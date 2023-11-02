@@ -8,7 +8,7 @@ from uuid_extensions import uuid7
 
 
 class BaseDocument(Document):
-    id: uuid.UUID = Field(default_factory=uuid7)
+    id: str = Field(default_factory=uuid7)
 
     @pydantic.validator("id", pre=True)
     def convert_id(cls, v: uuid.UUID, values, **kwargs):
