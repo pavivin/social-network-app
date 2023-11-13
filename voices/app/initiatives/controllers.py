@@ -90,13 +90,12 @@ async def get_feed(
         initiative_view.is_liked = initiative_view.id in set_liked
         survey = await Survey.get(initiative_view.id)
         if survey:
-            initiative_view.survey = dict(survey)
+            initiative_view.survey = json.loads(json.dumps(survey, default=lambda o: getattr(o, "__dict__", str(o))))
         response.append(initiative_view)
 
     dict_initiatives = []
     for item in response:
-        dict_item = dict(item)
-        dict_item["user"] = dict(item.user)
+        dict_item = json.loads(json.dumps(item, default=lambda o: getattr(o, "__dict__", str(o))))
         dict_initiatives.append(dict_item)
 
     await Redis.con.set(name=cache_key, value=json.dumps(dict_initiatives), ex=60)
@@ -450,7 +449,7 @@ async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenDa
 
 @router.put("/initiatives/{initiative_id}/vote", response_model=Response)
 async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token: TokenData = Depends(JWTBearer())):
-    survey = await Survey.get(initiative_id)  # TODO: to background
+    survey = await Survey.get(str(initiative_id))  # TODO: to background
     if not survey:
         raise ObjectNotFoundError
 
