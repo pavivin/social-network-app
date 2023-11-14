@@ -29,6 +29,7 @@ from voices.app.initiatives.views import (
     InitiativeListView,
     InitiativeView,
     SurveyCreate,
+    SurveyView,
     SurveyVoteView,
 )
 from voices.auth.jwt_token import JWTBearer
@@ -447,7 +448,7 @@ async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenDa
     return Response()
 
 
-@router.put("/initiatives/{initiative_id}/vote", response_model=Response[SurveyVoteView])
+@router.put("/initiatives/{initiative_id}/vote", response_model=Response[SurveyView])
 async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token: TokenData = Depends(JWTBearer())):
     survey = await Survey.get(str(initiative_id))  # TODO: to background
     if not survey:
