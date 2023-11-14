@@ -447,7 +447,7 @@ async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenDa
     return Response()
 
 
-@router.put("/initiatives/{initiative_id}/vote", response_model=Response)
+@router.put("/initiatives/{initiative_id}/vote", response_model=Response[SurveyVoteView])
 async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token: TokenData = Depends(JWTBearer())):
     survey = await Survey.get(str(initiative_id))  # TODO: to background
     if not survey:
@@ -466,12 +466,13 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
 
     for i, block in enumerate(answer.blocks):
         for j, option in enumerate(block.answer):
-            if option.value is not None:
-                try:
+            try:
+                if option.value is not None:
                     survey.blocks[i].answer[j].vote_count += 1
-                    survey.blocks[i].answer[j].vote_percent = int(((option.vote_count + 1) / survey.vote_count) * 100)
-                except KeyError:
-                    raise ValidationError(message="Not enough values in answer")
+
+                survey.blocks[i].answer[j].vote_percent = int(((option.vote_count + 1) / survey.vote_count) * 100)
+            except KeyError:
+                raise ValidationError(message="Not enough values in answer")
 
             if survey.blocks[i].survey_type == SurveyType.CHOOSE_ONE:
                 option.value = bool(option.value)
@@ -479,4 +480,12 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
     await answer.create()
     await survey.save()
 
-    return Response()
+    answer = await SurveyAnswer.find(
+        SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
+    ).first_or_none()
+    if answer:
+        for i, item in enumerate(answer.blocks):
+            for j, choose in enumerate(item.answer):
+                survey.blocks[i].answer[j].user_value = choose.value
+
+    return Response(payload=survey)
