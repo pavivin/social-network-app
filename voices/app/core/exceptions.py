@@ -82,6 +82,11 @@ class AlreadyUnlikedError(ApiException):
     status_code = 400
 
 
+class AlreadyUnsupportedError(ApiException):
+    message = "Post already unsupported"
+    status_code = 400
+
+
 class UserNotFoundError(ApiException):
     status_code = 400
     message = "User not found"

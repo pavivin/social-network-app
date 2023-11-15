@@ -19,7 +19,12 @@ from voices.app.core.responses import (
     ForbiddenResponse,
     NotFoundResponse,
 )
-from voices.app.initiatives.models import Comment, Initiative, InitiativeLike
+from voices.app.initiatives.models import (
+    Comment,
+    Initiative,
+    InitiativeLike,
+    InitiativeSupport,
+)
 from voices.app.initiatives.views import (
     CommentListView,
     CommentReplyView,
@@ -301,9 +306,13 @@ async def get_initiative(
 
     if answer.survey and token:
         existing_answer = await SurveyAnswer.find(
-            SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == str(initiative_id)
+            SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
         ).first_or_none()
         answer.is_voted = bool(existing_answer)
+        if existing_answer:
+            for i, item in enumerate(existing_answer.blocks):
+                for j, choose in enumerate(item.answer):
+                    answer.survey.blocks[i].answer[j].user_value = choose.value
 
     return Response(payload=answer)
 
@@ -435,6 +444,26 @@ async def post_unlike(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBe
     async with Transaction():
         await Initiative.get(initiative_id)
         await InitiativeLike.delete_like(initiative_id=initiative_id, user_id=token.sub)
+        await Initiative.update_likes_count(initiative_id=initiative_id, count=-1)
+
+    return Response()
+
+
+@router.post("/initiatives/{initiative_id}/support", response_model=Response[CommentReplyView])
+async def post_support(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Initiative.get(initiative_id)
+        await InitiativeSupport.post_support(initiative_id=initiative_id, user_id=token.sub)
+        await Initiative.update_likes_count(initiative_id=initiative_id, count=1)
+
+    return Response()
+
+
+@router.post("/initiatives/{initiative_id}/unsupport", response_model=Response[CommentReplyView])
+async def post_unsupport(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
+    async with Transaction():
+        await Initiative.get(initiative_id)
+        await InitiativeSupport.delete_support(initiative_id=initiative_id, user_id=token.sub)
         await Initiative.update_likes_count(initiative_id=initiative_id, count=-1)
 
     return Response()

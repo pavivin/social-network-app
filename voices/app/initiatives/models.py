@@ -12,6 +12,7 @@ from voices.app.auth.models import User
 from voices.app.core.exceptions import (
     AlreadyLikedError,
     AlreadyUnlikedError,
+    AlreadyUnsupportedError,
     NotFoundError,
     ObjectNotFoundError,
 )
@@ -383,3 +384,61 @@ class InitiativeLike(BaseModel):
         result: sa.CursorResult = await db_session.get().execute(query)
         if not result.scalars().all():
             raise AlreadyUnlikedError
+
+
+class InitiativeSupport(BaseModel):
+    __tablename__ = "initiatives_supports"
+
+    __table_args__ = (sa.UniqueConstraint("user_id", "initiative_id", name="_user_initiative_idx"),)
+
+    user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
+    user: Mapped[User] = relationship("User", foreign_keys="InitiativeSupport.user_id")
+    initiative_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("initiatives.id"), nullable=False)
+    initiative: Mapped[User] = relationship("Initiative", foreign_keys="InitiativeSupport.initiative_id")
+    created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
+
+    @staticmethod
+    async def get_count_supported(initiative_id: str):
+        query = sa.select(sa.func.count(InitiativeSupport.initiative_id)).where(
+            InitiativeSupport.initiative_id == initiative_id
+        )
+        result = await db_session.get().execute(query)
+        return result.scalar_one()
+
+    @staticmethod
+    async def get_supported(initiative_list: list[str], user_id: str):
+        query = sa.select(InitiativeSupport.initiative_id).where(
+            (InitiativeSupport.initiative_id.in_(initiative_list)) & (InitiativeSupport.user_id == user_id)
+        )
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @staticmethod
+    async def is_support_exists(initiative_id: uuid.UUID, user_id: uuid.UUID):
+        query = sa.select(InitiativeSupport.id).where(
+            (InitiativeSupport.initiative_id == initiative_id) & (user_id == user_id)
+        )
+        result = await db_session.get().execute(query)
+        return result.scalar_one()
+
+    @staticmethod
+    async def post_support(initiative_id: uuid.UUID, user_id: uuid.UUID):
+        try:
+            query = sa.insert(InitiativeSupport).values(
+                initiative_id=initiative_id,
+                user_id=user_id,
+            )
+            return await db_session.get().execute(query)
+        except IntegrityError:
+            raise AlreadyLikedError
+
+    @staticmethod
+    async def delete_support(initiative_id: uuid.UUID, user_id: uuid.UUID):
+        query = (
+            sa.delete(InitiativeSupport)
+            .where((InitiativeSupport.initiative_id == initiative_id) & (InitiativeSupport.user_id == user_id))
+            .returning(InitiativeSupport.id)
+        )
+        result: sa.CursorResult = await db_session.get().execute(query)
+        if not result.scalars().all():
+            raise AlreadyUnsupportedError
