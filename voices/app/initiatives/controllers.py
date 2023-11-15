@@ -4,7 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, status
 
-from voices.app.auth.models import CITY_MAPPING, User
+from voices.app.auth.models import User
 from voices.app.auth.views import TokenData
 from voices.app.core.exceptions import (  # NeedEmailConfirmation,
     AlreadyVotedError,
@@ -38,7 +38,6 @@ from voices.config import settings
 from voices.content_filter import content_filter
 from voices.db.connection import Transaction
 from voices.mongo.models import Survey, SurveyAnswer, SurveyType
-from voices.redis import Redis
 
 router = APIRouter()
 
@@ -59,17 +58,21 @@ async def get_feed(
             user = await User.get_by_id(token.sub)  # TODO: get from token
             city = user.city or settings.DEFAULT_CITY
         # cache prefix: i
-        cache_key = f"i:{CITY_MAPPING[city]}:{user_id or ''}:{last_id or ''}:{category or ''}:{search or ''}"
-        cached = await Redis.con.get(cache_key)
-        cached_total = await Redis.con.get(f"it:{CITY_MAPPING[city]}")  # TODO: to one call
-        if cached and cached_total:
-            dict_initiatives = json.loads(cached)
-            return Response(
-                payload=InitiativeListView(
-                    feed=[InitiativeView.parse_obj(item) for item in dict_initiatives],
-                    pagination=PaginationView(count=len(dict_initiatives), total=cached_total),
-                )
-            )
+        # cache_key = ( # cache works but breaks likes
+        #     f"i:{CITY_MAPPING[city]}:{user_id or ''}:{last_id or ''}:{category or ''}:{search or ''}:{role or ''}"
+        # )
+        # cached = await Redis.con.get(cache_key)
+        # cached_total = await Redis.con.get(
+        #     f"it:{CITY_MAPPING[city]}:{last_id or ''}:{category or ''}:{search or ''}:{role or ''}"
+        # )  # TODO: to one call
+        # if cached and cached_total:
+        #     dict_initiatives = json.loads(cached)
+        #     return Response(
+        #         payload=InitiativeListView(
+        #             feed=[InitiativeView.parse_obj(item) for item in dict_initiatives],
+        #             pagination=PaginationView(count=len(dict_initiatives), total=cached_total),
+        #         )
+        #     )
 
         feed = await Initiative.get_feed(
             city=city,
@@ -99,8 +102,8 @@ async def get_feed(
         dict_item = json.loads(json.dumps(item, default=lambda o: getattr(o, "__dict__", str(o))))
         dict_initiatives.append(dict_item)
 
-    await Redis.con.set(name=cache_key, value=json.dumps(dict_initiatives), ex=60)
-    await Redis.con.set(name=f"it:{CITY_MAPPING[city]}", value=total, ex=60)
+    # await Redis.con.set(name=cache_key, value=json.dumps(dict_initiatives), ex=60)
+    # await Redis.con.set(name=f"it:{CITY_MAPPING[city]}", value=total, ex=60)
 
     return Response(
         payload=InitiativeListView(
@@ -215,8 +218,8 @@ async def get_my(
             city = user.city or settings.DEFAULT_CITY
         else:
             city = settings.DEFAULT_CITY
-        feed = await Initiative.get_my(city=city, last_id=last_id, user_id=token.sub)
-        total = await Initiative.get_my(city=city, user_id=token.sub, is_total=True)
+        feed = await Initiative.get_my(city=city, last_id=last_id, user_id=user_id)
+        total = await Initiative.get_my(city=city, user_id=user_id, is_total=True)
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(liked)
 
