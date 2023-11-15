@@ -93,11 +93,14 @@ async def get_feed(
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(map(str, liked))
+        supported = await InitiativeSupport.get_supported(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_supported = set(map(str, supported))
 
     response: list[InitiativeView] = []
     for initiative in feed:
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = initiative_view.id in set_liked
+        initiative_view.is_supported = initiative_view.id in set_supported
         survey = await Survey.get(initiative_view.id)
         if survey:
             initiative_view.survey = json.loads(json.dumps(survey, default=lambda o: getattr(o, "__dict__", str(o))))
@@ -167,11 +170,14 @@ async def get_feed_maps(
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(map(str, liked))
+        supported = await InitiativeSupport.get_supported(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_supported = set(map(str, supported))
 
     response = []
     for initiative in feed:
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = initiative_view.id in set_liked
+        initiative_view.is_supported = initiative_view.id in set_supported
         response.append(initiative_view)
 
     return Response(
@@ -228,11 +234,14 @@ async def get_my(
         total = await Initiative.get_my(city=city, user_id=user_id, is_total=True)
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
         set_liked = set(map(str, liked))
+        supported = await InitiativeSupport.get_supported(initiative_list=[item.id for item in feed], user_id=user_id)
+        set_supported = set(map(str, supported))
 
     response = []
     for initiative in feed:
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = initiative_view.id in set_liked
+        initiative_view.is_supported = initiative_view.id in set_supported
         initiative_view.survey = await Survey.get(initiative_view.id)
         response.append(initiative_view)
 
@@ -298,9 +307,11 @@ async def get_initiative(
         initiative = await Initiative.select(initiative_id)
         liked = await InitiativeLike.get_liked(initiative_list=[initiative.id], user_id=user_id)
         set_liked = set(map(str, liked))
+        supported = await InitiativeSupport.get_supported(initiative_list=[initiative.id], user_id=user_id)
+        set_supported = set(map(str, supported))
 
     feed = [InitiativeDetailedView.from_orm(initiative)]
-    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
+    response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked, set_supported=set_supported)
 
     answer = response[0]  # TODO: rewrite
 
@@ -454,7 +465,7 @@ async def post_support(initiative_id: uuid.UUID, token: TokenData = Depends(JWTB
     async with Transaction():
         await Initiative.get(initiative_id)
         await InitiativeSupport.post_support(initiative_id=initiative_id, user_id=token.sub)
-        await Initiative.update_likes_count(initiative_id=initiative_id, count=1)
+        await Initiative.update_supports_count(initiative_id=initiative_id, count=1)
 
     return Response()
 
@@ -464,7 +475,7 @@ async def post_unsupport(initiative_id: uuid.UUID, token: TokenData = Depends(JW
     async with Transaction():
         await Initiative.get(initiative_id)
         await InitiativeSupport.delete_support(initiative_id=initiative_id, user_id=token.sub)
-        await Initiative.update_likes_count(initiative_id=initiative_id, count=-1)
+        await Initiative.update_supports_count(initiative_id=initiative_id, count=-1)
 
     return Response()
 

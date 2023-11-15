@@ -67,6 +67,7 @@ class Initiative(BaseDatetimeModel):
     likes_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     comments_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     reposts_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
+    supports_count: Mapped[int] = sa.Column(sa.Integer, server_default="0", nullable=False)
     status: Mapped[str] = sa.Column(sa.String(length=count_max_length(Status)), server_default=Status.ACTIVE)
     from_date: Mapped[date] = sa.Column(sa.Date())
     to_date: Mapped[date] = sa.Column(sa.Date())
@@ -81,6 +82,15 @@ class Initiative(BaseDatetimeModel):
             sa.update(Initiative)
             .where(Initiative.id == initiative_id)
             .values(likes_count=Initiative.likes_count + count)
+        )
+        await db_session.get().execute(query)
+
+    @classmethod
+    async def update_supports_count(cls, initiative_id: str, count: int):
+        query = (
+            sa.update(Initiative)
+            .where(Initiative.id == initiative_id)
+            .values(supports_count=Initiative.supports_count + count)
         )
         await db_session.get().execute(query)
 

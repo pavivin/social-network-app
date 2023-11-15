@@ -55,10 +55,11 @@ class Survey(BaseDocument):
     vote_count: int = 0
 
     @classmethod
-    async def get_surveys(cls, feed, token, set_liked=None):
+    async def get_surveys(cls, feed, token, set_liked=None, set_supported=None):
         response = []
         for initiative in feed:
             initiative.is_liked = initiative.id in set_liked if set_liked else False
+            initiative.is_supported = initiative.id in set_liked if set_supported else False
             initiative.survey = await Survey.get(initiative.id)
             if token:
                 answer = await SurveyAnswer.find(

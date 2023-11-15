@@ -82,6 +82,7 @@ class InitiativeView(BaseModel):
     reposts_count: int
     created_at: str | datetime
     is_liked: bool = False
+    is_supported: bool = False
     tags: list[str] | None
     survey: SurveyView | None = None
 
@@ -113,6 +114,7 @@ class InitiativeDetailedView(InitiativeView):
     created_at: datetime
     survey: SurveyView | None = None
     is_liked: bool = False
+    is_supported: bool = False
     is_voted: bool = False
     tags: list[str] | None
     ar_model: str | None
