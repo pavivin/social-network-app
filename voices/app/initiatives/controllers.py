@@ -57,6 +57,7 @@ async def get_feed(
         if token:
             user = await User.get_by_id(token.sub)  # TODO: get from token
             city = user.city or settings.DEFAULT_CITY
+
         # cache prefix: i
         # cache_key = ( # cache works but breaks likes
         #     f"i:{CITY_MAPPING[city]}:{user_id or ''}:{last_id or ''}:{category or ''}:{search or ''}:{role or ''}"
@@ -86,7 +87,7 @@ async def get_feed(
             city=city, category=category, status=status, role=role, search=search, is_total=True
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(liked)
+        set_liked = set(map(str, liked))
 
     response: list[InitiativeView] = []
     for initiative in feed:
@@ -160,7 +161,7 @@ async def get_feed_maps(
             city=city, category=category, status=status, role=role, search=search, is_total=True
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(liked)
+        set_liked = set(map(str, liked))
 
     response = []
     for initiative in feed:
@@ -221,7 +222,7 @@ async def get_my(
         feed = await Initiative.get_my(city=city, last_id=last_id, user_id=user_id)
         total = await Initiative.get_my(city=city, user_id=user_id, is_total=True)
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(liked)
+        set_liked = set(map(str, liked))
 
     response = []
     for initiative in feed:
@@ -291,7 +292,7 @@ async def get_initiative(
     async with Transaction():
         initiative = await Initiative.select(initiative_id)
         liked = await InitiativeLike.get_liked(initiative_list=[initiative.id], user_id=user_id)
-        set_liked = set(liked)
+        set_liked = set(map(str, liked))
 
     feed = [InitiativeDetailedView.from_orm(initiative)]
     response = await Survey.get_surveys(feed=feed, token=token, set_liked=set_liked)
@@ -300,7 +301,7 @@ async def get_initiative(
 
     if answer.survey and token:
         existing_answer = await SurveyAnswer.find(
-            SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_id
+            SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == str(initiative_id)
         ).first_or_none()
         answer.is_voted = bool(existing_answer)
 
