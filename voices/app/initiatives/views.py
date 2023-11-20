@@ -80,6 +80,7 @@ class InitiativeView(BaseModel):
     likes_count: int
     comments_count: int
     reposts_count: int
+    supports_count: int
     created_at: str | datetime
     is_liked: bool = False
     is_supported: bool = False
@@ -111,6 +112,7 @@ class InitiativeDetailedView(InitiativeView):
     likes_count: int
     comments_count: int
     reposts_count: int
+    supports_count: int
     created_at: datetime
     survey: SurveyView | None = None
     is_liked: bool = False
