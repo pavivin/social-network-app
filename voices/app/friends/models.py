@@ -51,8 +51,10 @@ class Friend(BaseModel):
     @staticmethod
     async def get_friends(user_id: str, last_id: str | None = None, is_total: bool = False, pattern: str | None = None):
         selected = sa.func.count(Friend.id) if is_total else Friend
-        query = sa.select(selected).where(
-            sa.or_(Friend.user_id == user_id) & (Friend.relationship_type == RelationshipType.FRIEND)
+        query = (
+            sa.select(selected)
+            .where(sa.or_(Friend.user_id == user_id) & (Friend.relationship_type == RelationshipType.FRIEND))
+            .where(User.deleted_at.is_(None))
         )
         if not is_total:
             query = query.join(Friend.friend)

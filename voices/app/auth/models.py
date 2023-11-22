@@ -57,6 +57,12 @@ class User(BaseDatetimeModel):
         return result
 
     @staticmethod
+    async def get_all_images():
+        query = sa.select(User.image_url)
+        result = (await db_session.get().execute(query)).scalars().all()
+        return result
+
+    @staticmethod
     async def get_by_email(email: str):
         query = (
             sa.select(User)
@@ -111,7 +117,7 @@ class User(BaseDatetimeModel):
     @staticmethod
     async def search_by_pattern(pattern: str, city: str, last_id: str | None = None, is_total: bool = False):
         selected = sa.func.count(User.id) if is_total else User
-        query = sa.select(selected)
+        query = sa.select(selected).where(User.deleted_at.is_(None))
         if pattern:
             normalized_pattern = pattern.lower()
             query = query.where(
@@ -120,7 +126,7 @@ class User(BaseDatetimeModel):
                     sa.func.lower(User.last_name).contains(normalized_pattern),
                 )
                 & (User.city == city)  # TODO: city to indexed number
-            ).where(User.deleted_at.is_(None))
+            )
         if last_id:
             query = query.where(User.id < last_id)
         result = await db_session.get().execute(query)

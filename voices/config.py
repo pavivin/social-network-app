@@ -74,6 +74,14 @@ class Settings(BaseSettings):
     MAIL_SENDER_DOMAIN: str
     MAIL_SENDER_PORT: str
 
+    # S3
+    S3_ENDPOINT_URL: str | None = None
+    S3_AWS_ACCESS_KEY_ID: str | None = None
+    S3_AWS_SECRET_ACCESS_KEY: str | None = None
+    BUCKET_NAME: str | None = None
+    REGION_NAME: str | None = None
+    CONTENT_URL = "https://storage.yandexcloud.net/my-city/"
+
     @validator("AUTH_PRIVATE_KEY_DATA", pre=True)
     def prepare_private_file(cls, v: Optional[str], values: Mapping[str, Any]):
         if v and isinstance(v, str):
