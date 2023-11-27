@@ -1,4 +1,3 @@
-import json
 import uuid
 from datetime import datetime
 
@@ -92,9 +91,9 @@ async def get_feed(
             city=city, category=category, status=status, role=role, search=search, is_total=True
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(map(str, liked))
+        set_liked = set(liked)
         supported = await InitiativeSupport.get_supported(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_supported = set(map(str, supported))
+        set_supported = set(supported)
 
     response: list[InitiativeView] = []
     for initiative in feed:
@@ -103,13 +102,14 @@ async def get_feed(
         initiative_view.is_supported = initiative_view.id in set_supported
         survey = await Survey.get(initiative_view.id)
         if survey:
-            initiative_view.survey = json.loads(json.dumps(survey, default=lambda o: getattr(o, "__dict__", str(o))))
+            initiative_view.survey = survey
+            # json.loads(json.dumps(survey, default=lambda o: getattr(o, "__dict__", str(o))))
         response.append(initiative_view)
 
-    dict_initiatives = []
-    for item in response:
-        dict_item = json.loads(json.dumps(item, default=lambda o: getattr(o, "__dict__", str(o))))
-        dict_initiatives.append(dict_item)
+    # dict_initiatives = []
+    # for item in response:
+    #     dict_item = json.loads(json.dumps(item, default=lambda o: getattr(o, "__dict__", str(o))))
+    #     dict_initiatives.append(dict_item)
 
     # await Redis.con.set(name=cache_key, value=json.dumps(dict_initiatives), ex=60)
     # await Redis.con.set(name=f"it:{CITY_MAPPING[city]}", value=total, ex=60)

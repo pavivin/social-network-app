@@ -52,15 +52,15 @@ class User(BaseDatetimeModel):
 
     @staticmethod
     async def get_all():
-        query = sa.select(User.email)
+        query = sa.select(User)
         result = (await db_session.get().execute(query)).scalars().all()
         return result
 
     @staticmethod
     async def get_all_images():
-        query = sa.select(User.image_url)
-        result = (await db_session.get().execute(query)).scalars().all()
-        return result
+        query = sa.select(User.id, User.image_url)
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
 
     @staticmethod
     async def get_by_email(email: str):

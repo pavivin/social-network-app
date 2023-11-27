@@ -155,3 +155,4 @@ cython_debug/
 /uploads/*
 .vscode
 data/*
+.ruff_cache

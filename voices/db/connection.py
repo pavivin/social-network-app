@@ -24,6 +24,7 @@ class Transaction:
         session_maker = container.resolve(sessionmaker)
         self.session: AsyncSession = session_maker()
         self.token = db_session.set(self.session)
+        return self
 
     async def __aexit__(self, exception_type, exception, traceback):
         if exception:
