@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -318,9 +318,17 @@ class Comment(BaseDatetimeModel):
     async def post_comment(
         cls, main_text: str, initiative_id: uuid.UUID, user_id: uuid.UUID, reply_id: uuid.UUID | None = None
     ):
-        query = sa.insert(cls).values(
+        query = sa.insert(Comment).values(
             main_text=main_text, parent_id=reply_id, initiative_id=initiative_id, user_id=user_id
         )
+        return await db_session.get().execute(query)
+
+    @classmethod
+    async def delete_comment(
+        cls,
+        comment_id: uuid.UUID,
+    ):
+        query = sa.update(cls).values(deleted_at=datetime.now()).where(Comment.id == comment_id)
         return await db_session.get().execute(query)
 
     @staticmethod

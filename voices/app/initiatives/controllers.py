@@ -429,6 +429,21 @@ async def post_comment(
     return Response()
 
 
+@router.delete("/initiatives/{initiative_id}/comments/{comment_id}", response_model=Response[CommentReplyView])
+async def delete_comment(
+    initiative_id: uuid.UUID,
+    comment_id: uuid.UUID,
+    token: TokenData = Depends(JWTBearer()),
+):
+    async with Transaction():
+        comment = await Comment.get(comment_id)
+        if comment.user_id.hex != token.sub:
+            raise ForbiddenError()
+        await Comment.delete_comment(comment_id=comment_id)
+
+    return Response()
+
+
 @router.post("/initiatives/{initiative_id}/like", response_model=Response[CommentReplyView])
 async def post_like(initiative_id: uuid.UUID, token: TokenData = Depends(JWTBearer())):
     async with Transaction():
@@ -489,6 +504,12 @@ async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenDa
         blocks=body.blocks,
     )
     await survey.create()
+    return Response()
+
+
+@router.delete("/initiatives/{initiative_id}/survey", response_model=Response)
+async def delete_survey(initiative_id: uuid.UUID, _: TokenData = Depends(JWTBearer())):
+    await Survey.find(Survey.id == str(initiative_id)).delete()
     return Response()
 
 
