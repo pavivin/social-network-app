@@ -15,6 +15,7 @@ import voices.app.notifications.controllers as notifications
 import voices.app.storage.controllers as storage
 from voices.app.core import exceptions
 from voices.app.core.protocol import Response
+from voices.app.storage.s3 import S3Service
 from voices.config import settings
 from voices.logger import logger
 from voices.mongo import mongo_client
@@ -36,8 +37,10 @@ async def lifespan(app: FastAPI):
         document_models=[Survey, SurveyAnswer],
     )
     await Redis().connect()
+    await S3Service.get_s3_client()
     yield
     await Redis().disconnect()
+    await S3Service.close_s3_session()
 
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None, lifespan=lifespan)

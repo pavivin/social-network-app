@@ -1,4 +1,4 @@
-from voices.broker import app
+from voices.broker import app  # noqa: F401
 
 from .notification import send_notification
 

@@ -6,7 +6,6 @@ from voices.config import settings
 
 
 class S3Service:
-
     session: Optional[aiobotocore.session.AioSession] = None
     s3_client: Optional[aiobotocore.session.AioBaseClient] = None
 

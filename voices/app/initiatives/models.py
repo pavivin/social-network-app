@@ -76,6 +76,18 @@ class Initiative(BaseDatetimeModel):
     event_direction: Mapped[str] = sa.Column(sa.String(length=100), nullable=True)
     approved: Mapped[bool] = sa.Column(sa.Boolean, nullable=True)
 
+    @staticmethod
+    async def get_all():
+        query = sa.select(Initiative).where(Initiative.deleted_at.is_(None))
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
+    @staticmethod
+    async def get_all_images():
+        query = sa.select(Initiative.id, Initiative.image_url)
+        result = await db_session.get().execute(query)
+        return result.scalars().all()
+
     @classmethod
     async def update_likes_count(cls, initiative_id: str, count: int):
         query = (

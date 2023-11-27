@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-precommit-${{ hashFiles('.pre-commit-config.yaml') }}
+          key: ${{ runner.os }}-precommit-${{ hashFiles('.ruff_cache') }}
 
       - name: Install pre-commit
         run: pip install pre-commit

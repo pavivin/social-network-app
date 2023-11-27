@@ -12,6 +12,6 @@ loop = asyncio.get_event_loop()
 cred = credentials.Certificate(settings.FIREBASE_SECRETS)
 app_firebase = firebase_admin.initialize_app(cred, name="Vizme_Backend")
 
-from voices.broker.tasks import CELERY_IMPORTS
+from voices.broker.tasks import CELERY_IMPORTS  # noqa: E402
 
 app.conf.update(tasks=CELERY_IMPORTS)
