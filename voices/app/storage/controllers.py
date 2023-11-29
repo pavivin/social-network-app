@@ -1,7 +1,6 @@
 import io
 import os
 
-import aiofiles
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
@@ -13,23 +12,37 @@ from voices.app.core.exceptions import (
     UnsupportedFileTypeError,
 )
 from voices.app.core.protocol import Response
+from voices.app.storage.s3 import S3Service
 from voices.config import settings
+import webp
 
 
 class Storage:
     @classmethod
-    async def create(cls, file_ext: str, file_data: bytes):
-        filename = uuid7().hex
-        if file_ext in settings.ALLOWED_PHOTO_TYPES:
-            webp_image = Image.open(io.BytesIO(file_data))
-            webp_image.save(f"data/{filename}.webp", format="Webp")
-            mini_image = webp_image.resize(size=(100, 100))
-            mini_image.save(f"data/{filename}-100x100.webp", format="Webp")
-            return f"{filename}.webp"
+    async def create(cls, file_ext: str, file_data: bytes) -> str:
+        filename = uuid7(as_type="hex")
 
-        full_path = f"{filename}.{file_ext}"
-        async with aiofiles.open(f"data/{full_path}", mode="wb") as f:
-            await f.write(file_data)
+        if file_ext in settings.ALLOWED_PHOTO_TYPES:
+            img = Image.open(io.BytesIO(file_data))
+
+            pic = webp.WebPPicture.from_pil(img)
+            config = webp.WebPConfig.new(lossless=True)
+
+            max_webp_data = bytes(pic.encode(config).buffer())
+            min_config = webp.WebPConfig.new(quality=10)
+            min_webp_data = bytes(pic.encode(min_config).buffer())
+            max_image_path = f"{filename}.webp"
+            mini_image_path = f"{filename}-min.webp"
+            await S3Service.put_object(img_name=max_image_path, file=max_webp_data)  # TODO: to asyncio.gather
+            await S3Service.put_object(img_name=mini_image_path, file=min_webp_data)
+
+            s3_filepath = max_image_path
+
+        else:
+            s3_filepath = f"{filename}.{file_ext}"
+            await S3Service.put_object(img_name=s3_filepath, file=file_data)
+
+        full_path = f"https://storage.yandexcloud.net/my-city/{s3_filepath}"
         return full_path
 
 
