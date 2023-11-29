@@ -30,7 +30,7 @@ html = """
 <body>
     <p>Для получения доступа ко всем возможностям приложения "Мой Город"<br>
         подтвердите адрес электронной почты<br>
-        <a href="voices-city.ru/api/confirm-email/{user_id}/{email_token}">Подтвердить email</a>
+        <a href="my-city.pro/api/confirm-email/{user_id}/{email_token}">Подтвердить email</a>
     </p>
 </body>
 
