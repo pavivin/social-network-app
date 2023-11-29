@@ -49,6 +49,7 @@ class User(BaseDatetimeModel):
     birthdate: Mapped[date] = sa.Column(sa.Date, nullable=True)
     email_approved: Mapped[bool] = sa.Column(sa.Boolean, nullable=True, default=False)  # TODO: to server_default
     phone: Mapped[str] = sa.Column(sa.String, nullable=True, unique=True)
+    friends_count: Mapped[int] = sa.Column(sa.Integer, server_default="0")
 
     @staticmethod
     async def get_all():

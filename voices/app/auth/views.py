@@ -67,6 +67,7 @@ class ProfileView(BaseModel):
     relationship_type: str | None = None
     email: str
     phone: str | None = None
+    friends_count: int
 
 
 class OwnProfileView(BaseModel):
@@ -81,6 +82,7 @@ class OwnProfileView(BaseModel):
     email: str
     email_approved: bool = False
     phone: str | None = None
+    friends_count: int
 
 
 class UserView(BaseModel):
