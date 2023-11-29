@@ -9,6 +9,7 @@ from voices.app.auth.models import User
 from voices.app.notifications.models import FirebaseApp, Notification
 from voices.broker import app, app_firebase, loop
 from voices.db.connection import Transaction
+from voices.utils import get_minify_image
 
 
 class EventName(StrEnum):
@@ -53,8 +54,8 @@ async def firebase_notifications(
         text = status_text[status]
         data_send = {
             "text": text,
-            "picture": user.image_url,  # TODO: remove
-            "avatar_url": user.image_url,
+            "picture": get_minify_image(user.image_url),  # TODO: remove
+            "avatar_url": get_minify_image(user.image_url),
             "time": datetime.now().isoformat(),
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -64,12 +65,13 @@ async def firebase_notifications(
         if initiative_id:
             data_send["initiative_id"] = str(initiative_id)
         if initiative_image:
+            initiative_image = get_minify_image(initiative_image)
             data_send["initiative_image"] = initiative_image
 
         await Notification.create(
             owner_id=user_id_get,
             text=text,
-            avatar_url=user.image_url,
+            avatar_url=get_minify_image(user.image_url),
             first_name=user.first_name,
             last_name=user.last_name,
             type=status,

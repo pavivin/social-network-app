@@ -67,6 +67,14 @@ class UserView(BaseModel):
     def convert_id(cls, v, values, **kwargs):
         return str(v)
 
+    @pydantic.validator("image_url", pre=True)
+    def prepare_public_file(cls, v: str, values):
+        if "min" in v:
+            return v
+        filename = v.split("/")[-1]
+        name, file_ext = filename.split(".")
+        return f"https://storage.yandexcloud.net/my-city/{name}-min.{file_ext}"
+
 
 class InitiativeView(BaseModel):
     id: str

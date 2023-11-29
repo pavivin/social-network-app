@@ -2,6 +2,7 @@ import uuid
 from datetime import date, datetime
 
 from pydantic import AnyUrl, EmailStr
+import pydantic
 
 from voices.app.core.protocol import BaseModel
 
@@ -90,6 +91,14 @@ class UserView(BaseModel):
     first_name: str = "unknown"
     last_name: str = "user"
     image_url: str | None
+
+    @pydantic.validator("image_url", pre=True)
+    def prepare_public_file(cls, v: str, values):
+        if "min" in v:
+            return v
+        filename = v.split("/")[-1]
+        name, file_ext = filename.split(".")
+        return f"https://storage.yandexcloud.net/my-city/{name}-min.{file_ext}"
 
 
 class SearchListView(BaseModel):
