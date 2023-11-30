@@ -47,13 +47,10 @@ class Initiative(BaseDatetimeModel):
         ACTIVE = "active"
         SOLVED = "solved"
 
-    class TagsCategory(StrEnum):
-        PROBLEM = "Новость"
-        EVENT = "Событие"
-        DECIDE_TOGETHER = "Решаем вместе"
-        SURVEY = "Опрос"
-        PROJECT = "Проект"
-        BUILDING = "Строительство"
+    class IconTagsEnum(StrEnum):
+        DATE = "date"
+        GEO = "geo"
+        QUESTIONS = "questions"
 
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
     user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default
@@ -75,6 +72,8 @@ class Initiative(BaseDatetimeModel):
     ar_model: Mapped[str] = sa.Column(sa.String(length=2000), nullable=True)
     event_direction: Mapped[str] = sa.Column(sa.String(length=100), nullable=True)
     approved: Mapped[bool] = sa.Column(sa.Boolean, nullable=True)
+    address: Mapped[str] = sa.Column(sa.String(length=100), nullable=True)
+    # survey_exist TODO: optimize select surveys
 
     @staticmethod
     async def get_all():
@@ -131,14 +130,6 @@ class Initiative(BaseDatetimeModel):
         from_date: date = None,
         to_date: date = None,
     ):
-        tags = [cls.TagsCategory[category]]
-        if ar_model:
-            tags.append("AR")
-        if from_date and to_date:
-            tags.append("Активно")
-
-        tags = tags[:2]
-
         query = (
             sa.insert(Initiative)
             .values(
@@ -151,7 +142,8 @@ class Initiative(BaseDatetimeModel):
                 location=GeometryPoint.to_str(location),
                 ar_model=ar_model,
                 event_direction=event_direction,
-                tags=tags,
+                from_date=from_date,
+                to_date=to_date,
             )
             .returning(Initiative.id)
         )

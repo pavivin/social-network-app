@@ -90,10 +90,14 @@ class InitiativeView(BaseModel):
     reposts_count: int
     supports_count: int
     created_at: str | datetime
+    from_date: date | None
+    to_date: date | None
     is_liked: bool = False
     is_supported: bool = False
-    tags: list[str] | None
+    tags: list | None
     survey: SurveyView | None = None
+    ar_model: str | None
+    address: str | None
 
     @pydantic.validator("id", pre=True)
     def convert_id(cls, v: uuid.UUID, values, **kwargs):
@@ -107,26 +111,41 @@ class InitiativeView(BaseModel):
             return v
         raise ValidationError
 
+    @pydantic.validator("tags", pre=True)
+    def convert_tags(cls, v, values: dict, **kwargs):
+        tags = [{"type": Initiative.Status.ACTIVE, "label": "Активно", "icon": None}]  # TODO: archive
+
+        from_date, to_date = values["from_date"], values["to_date"]
+        if from_date and to_date:
+            from_date = from_date.strftime("%d.%m.%Y")
+            to_date = to_date.strftime("%d.%m.%Y")
+
+            tag = {
+                "type": Initiative.Status.ACTIVE,
+                "label": f"{from_date}-{to_date}",
+                "icon": Initiative.IconTagsEnum.DATE,
+            }
+            tags.append(tag)
+
+        survey = values.get("survey")  # TODO: count of questions, is survey exists
+        if survey:
+            tag = {"type": Initiative.Status.ACTIVE, "label": "Голосование", "icon": Initiative.IconTagsEnum.QUESTIONS}
+
+        ar_model = values.get("ar_model")
+        if ar_model:
+            tag = {"type": Initiative.Status.ACTIVE, "label": "AR", "icon": None}
+
+        address = values.get("address")
+        if address:
+            tag = {"type": Initiative.Status.ACTIVE, "label": address, "icon": Initiative.IconTagsEnum.GEO}
+
+        return tags
+
 
 class InitiativeDetailedView(InitiativeView):
-    id: str
-    user: UserView
-    city: str
-    images: list | dict | None
-    category: Initiative.Category
-    location: GeometryPoint | None
-    title: str
-    main_text: str
-    likes_count: int
-    comments_count: int
-    reposts_count: int
-    supports_count: int
-    created_at: datetime
-    survey: SurveyView | None = None
     is_liked: bool = False
     is_supported: bool = False
     is_voted: bool = False
-    tags: list[str] | None
     ar_model: str | None
 
     @pydantic.validator("id", pre=True)
