@@ -98,6 +98,7 @@ class InitiativeView(BaseModel):
     survey: SurveyView | None = None
     ar_model: str | None
     address: str | None
+    event_direction: str | None
 
     @pydantic.validator("id", pre=True)
     def convert_id(cls, v: uuid.UUID, values, **kwargs):
@@ -121,7 +122,7 @@ class InitiativeView(BaseModel):
             to_date = to_date.strftime("%d.%m.%Y")
 
             tag = {
-                "type": Initiative.Status.ACTIVE,
+                "type": Initiative.TypeTagsEnum.DEFAULT,
                 "label": f"{from_date}-{to_date}",
                 "icon": Initiative.IconTagsEnum.DATE,
             }
@@ -129,15 +130,23 @@ class InitiativeView(BaseModel):
 
         survey = values.get("survey")  # TODO: count of questions, is survey exists
         if survey:
-            tag = {"type": Initiative.Status.ACTIVE, "label": "Голосование", "icon": Initiative.IconTagsEnum.QUESTIONS}
+            tag = {
+                "type": Initiative.TypeTagsEnum.DEFAULT,
+                "label": "Голосование",
+                "icon": Initiative.IconTagsEnum.QUESTIONS,
+            }
 
         ar_model = values.get("ar_model")
         if ar_model:
-            tag = {"type": Initiative.Status.ACTIVE, "label": "AR", "icon": None}
+            tag = {"type": Initiative.TypeTagsEnum.DEFAULT, "label": "AR", "icon": None}
 
         address = values.get("address")
         if address:
-            tag = {"type": Initiative.Status.ACTIVE, "label": address, "icon": Initiative.IconTagsEnum.GEO}
+            tag = {"type": Initiative.TypeTagsEnum.DEFAULT, "label": address, "icon": Initiative.IconTagsEnum.GEO}
+
+        event_direction = values.get("event_direction")
+        if event_direction:
+            tag = {"type": Initiative.TypeTagsEnum.DEFAULT, "label": event_direction, "icon": None}
 
         return tags
 

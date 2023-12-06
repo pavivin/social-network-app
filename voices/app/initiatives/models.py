@@ -52,6 +52,11 @@ class Initiative(BaseDatetimeModel):
         GEO = "geo"
         QUESTIONS = "questions"
 
+    class TypeTagsEnum(StrEnum):
+        ACTIVE = "active"
+        SOLVED = "solved"
+        DEFAULT = "default"
+
     user_id: Mapped[uuid.UUID] = sa.Column(sa.UUID, sa.ForeignKey("users.id"), nullable=False)
     user: Mapped[User] = relationship("User", foreign_keys="Initiative.user_id")  # TODO: joinedload default
     city: Mapped[str] = sa.Column(sa.String(length=35))
