@@ -91,7 +91,7 @@ async def get_feed(
             city=city, category=category, status=status, role=role, search=search, is_total=True
         )
         liked = await InitiativeLike.get_liked(initiative_list=[item.id for item in feed], user_id=user_id)
-        set_liked = set(liked)
+        set_liked = set(map(str, liked))
         supported = await InitiativeSupport.get_supported(initiative_list=[item.id for item in feed], user_id=user_id)
         set_supported = set(supported)
 
