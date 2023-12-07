@@ -111,11 +111,11 @@ async def migrate_list_images(image_list: list[Initiative], tr: Transaction):
 async def handle():
     await S3Service.get_s3_client()
     async with Transaction() as tr:
-        # model_list = await User.get_all()
-        # await migrate_images(model_list, tr=tr)
+        model_list = await User.get_all()
+        await migrate_images(model_list, tr=tr)
 
-        model_list = await Initiative.get_all()
-        await migrate_list_images(model_list, tr=tr)
+        # model_list = await Initiative.get_all()
+        # await migrate_list_images(model_list, tr=tr)
 
 
 asyncio.run(handle())

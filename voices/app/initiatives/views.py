@@ -123,7 +123,7 @@ class InitiativeView(BaseModel):
 
             tag = {
                 "type": Initiative.TypeTagsEnum.DEFAULT,
-                "label": f"{from_date}-{to_date}",
+                "label": f"{from_date} - {to_date}",
                 "icon": Initiative.IconTagsEnum.DATE,
             }
             tags.append(tag)

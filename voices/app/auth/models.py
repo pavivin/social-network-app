@@ -41,7 +41,7 @@ class User(BaseDatetimeModel):
     image_url: Mapped[str] = sa.Column(
         sa.String(length=2000),
         nullable=True,
-        default="https://voices-city.ru/api/storage/064e74c0198f7159800002e35c77df4a.jpg",
+        default="https://storage.yandexcloud.net/my-city/06563fe7f2a779b280000970701fa57b.webp",
     )
     hashed_password: Mapped[str] = sa.Column(sa.String(length=128), nullable=False)
     city: Mapped[str] = sa.Column(sa.String(length=50), nullable=True)

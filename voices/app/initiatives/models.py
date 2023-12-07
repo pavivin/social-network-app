@@ -115,6 +115,16 @@ class Initiative(BaseDatetimeModel):
         query = (
             sa.update(Initiative)
             .where(Initiative.id == initiative_id)
+            .values(comments_count=Initiative.comments_count - 1)
+            .returning(Initiative.comments_count)
+        )
+        await db_session.get().scalar(query)
+
+    @staticmethod
+    async def decrement_comments_count(initiative_id: str) -> int:
+        query = (
+            sa.update(Initiative)
+            .where(Initiative.id == initiative_id)
             .values(comments_count=Initiative.comments_count + 1)
             .returning(Initiative.comments_count)
         )
@@ -332,12 +342,16 @@ class Comment(BaseDatetimeModel):
     async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID | None = None, is_total: bool = False):
         selected = sa.func.count(Comment.id) if is_total else Comment
         query = sa.select(selected).where(
-            (Comment.initiative_id == initiative_id) & (Comment.deleted_at.is_(None)) & (Comment.parent_id.is_(None))
+            (Comment.initiative_id == initiative_id)
+            & (Comment.deleted_at.is_(None))
+            & (Comment.parent_id.is_(None))
+            & (Comment.initiative.has(Initiative.deleted_at.is_(None)))
         )
 
         if not is_total:
             query = (
                 query.order_by(Comment.id.desc())
+                .join(Comment.initiative)
                 .options(
                     joinedload(Comment.user, innerjoin=True),
                     joinedload(Comment.initiative),

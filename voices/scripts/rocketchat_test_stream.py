@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 
 import requests
@@ -99,7 +100,18 @@ def stream_notify_room(room_id: str):
             "msg": "sub",
             "id": uuid.uuid4().hex,
             "name": "stream-notify-room",
-            "params": [f"{room_id}/event", False],
+            "params": [f"{room_id}/message", False],
+        }
+    )
+
+
+def stream_notify_user(user_id: str):
+    return _request(
+        {
+            "msg": "sub",
+            "id": uuid.uuid4().hex,
+            "name": "stream-notify-all",
+            "params": [f"{user_id}/event", False],
         }
     )
 
@@ -126,11 +138,13 @@ with connect(SOCKET_URL) as websocket:
     # ----------------- CONNECT TO SOCKET -----------------
     chat_data = create_chat(user_id=user_id)
     room_id = chat_data["result"]["rid"]
-    msg_info = send_message(room_id=room_id)
-    last_date = msg_info["result"]["ts"]["$date"]
-    load_history(room_id=room_id, last_date=last_date)
+    # msg_info = send_message(room_id=room_id)
+    # last_date = msg_info["result"]["ts"]["$date"]
+    # load_history(room_id=room_id, last_date=last_date)
     # ----------------- CHAT -----------------
     # stream_messages(room_id=room_id)
-    # stream_notify_room(room_id=room_id)
+    while True:
+        result = stream_notify_user(user_id=user_id)
+        time.sleep(1)
     # ROOMS
     get_rooms()

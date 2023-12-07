@@ -440,6 +440,7 @@ async def delete_comment(
         if comment.user_id.hex != token.sub:
             raise ForbiddenError()
         await Comment.delete_comment(comment_id=comment_id)
+        await Initiative.increment_comments_count(initiative_id=initiative_id)
 
     return Response()
 
