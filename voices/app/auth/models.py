@@ -134,3 +134,17 @@ class User(BaseDatetimeModel):
         if is_total:
             return result.scalar_one()
         return result.scalars().all()
+
+    @staticmethod
+    async def increment_friends_count(user_list: list[str]) -> int:
+        query = (
+            sa.update(User).where(User.id.in_(user_list)).values(friends_count=User.friends_count + 1).returning(User)
+        )
+        await db_session.get().scalar(query)
+
+    @staticmethod
+    async def decrement_friends_count(user_list: list[str]) -> int:
+        query = (
+            sa.update(User).where(User.id.in_(user_list)).values(friends_count=User.friends_count - 1).returning(User)
+        )
+        await db_session.get().scalar(query)
