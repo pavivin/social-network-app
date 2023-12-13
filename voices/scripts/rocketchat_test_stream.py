@@ -11,9 +11,13 @@ SOCKET_URL = "ws://89.223.126.166:3000/websocket"
 def login_api():
     return requests.post(
         "https://my-city.pro/api/login",
+        # json={
+        #     "email": "user@example.com",
+        #     "password": "string",
+        # },
         json={
-            "email": "user@example.com",
-            "password": "string",
+            "email": "tagidick34.tagidick@gmail.com",
+            "password": "Qwerty123",
         },
     ).json()
 
@@ -137,14 +141,16 @@ with connect(SOCKET_URL) as websocket:
     # chat_token = chat_login_data['id']
     # ----------------- CONNECT TO SOCKET -----------------
     chat_data = create_chat(user_id=user_id)
-    room_id = chat_data["result"]["rid"]
+    # room_id = chat_data["result"]["rid"]
+    room_id = "cRGBWwEhwajxwuXHSqzqHjiscX2ZQyTW5S"
     # msg_info = send_message(room_id=room_id)
     # last_date = msg_info["result"]["ts"]["$date"]
     # load_history(room_id=room_id, last_date=last_date)
     # ----------------- CHAT -----------------
-    # stream_messages(room_id=room_id)
+
     while True:
-        result = stream_notify_user(user_id=user_id)
+        # result = stream_notify_user(user_id=user_id)
+        stream_notify_room(room_id=room_id)
         time.sleep(1)
     # ROOMS
     get_rooms()

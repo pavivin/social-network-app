@@ -111,7 +111,7 @@ class Initiative(BaseDatetimeModel):
         await db_session.get().execute(query)
 
     @staticmethod
-    async def increment_comments_count(initiative_id: str) -> int:
+    async def decrement_comments_count(initiative_id: str) -> int:
         query = (
             sa.update(Initiative)
             .where(Initiative.id == initiative_id)
@@ -121,7 +121,7 @@ class Initiative(BaseDatetimeModel):
         await db_session.get().scalar(query)
 
     @staticmethod
-    async def decrement_comments_count(initiative_id: str) -> int:
+    async def increment_comments_count(initiative_id: str) -> int:
         query = (
             sa.update(Initiative)
             .where(Initiative.id == initiative_id)
