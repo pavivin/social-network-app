@@ -1,16 +1,15 @@
 import asyncio
-from voices.app.auth.models import User
+from voices.app.initiatives.models import Comment, Initiative
 
-from voices.app.friends.models import Friend
 from voices.db.connection import Transaction
 
 
 async def handle():
     async with Transaction() as tr:
-        user_list = await User.get_all()
-        for user in user_list:
-            friends = await Friend.get_friends(user_id=user.id, is_total=True)
-            user.friends_count = friends
+        initiative_list = await Initiative.get_all()
+        for initiative in initiative_list:
+            comments_count: int = await Comment.get_comments(initiative_id=initiative.id, is_total=True)
+            initiative.comments_count = comments_count
             await tr.session.commit()
 
 
