@@ -512,6 +512,7 @@ async def create_survey(initiative_id: uuid.UUID, body: SurveyCreate, _: TokenDa
 async def delete_survey(initiative_id: uuid.UUID, _: TokenData = Depends(JWTBearer())):
     await Survey.find(Survey.id == str(initiative_id)).delete()
     await SurveyAnswer.find(SurveyAnswer.survey_id == str(initiative_id)).delete()
+    await SurveyAnswer.find(SurveyAnswer.survey_id == initiative_id).delete()
     return Response()
 
 
