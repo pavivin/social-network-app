@@ -379,13 +379,13 @@ async def delete_initiative(
 )
 async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID = None):
     async with Transaction():
-        await Initiative.get(initiative_id)  # raises 404
+        initiative = await Initiative.get(initiative_id)  # raises 404
         comments = await Comment.get_comments(initiative_id=initiative_id, last_id=last_id)
 
     return Response(
         payload=CommentListView(
             comments=[CommentReplyView.from_orm(item) for item in comments],
-            pagination=PaginationView(total=len(comments)),
+            pagination=PaginationView(total=initiative.comments_count, count=len(comments)),
         )
     )
 

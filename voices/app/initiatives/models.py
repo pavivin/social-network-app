@@ -341,16 +341,12 @@ class Comment(BaseDatetimeModel):
     @staticmethod
     async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID | None = None, is_total: bool = False):
         selected = sa.func.count(Comment.id) if is_total else Comment
-        query = sa.select(selected).where(
-            (Comment.initiative_id == initiative_id)
-            & (Comment.deleted_at.is_(None))
-            & (Comment.parent_id.is_(None))
-            & (Comment.initiative.has(Initiative.deleted_at.is_(None)))
-        )
+        query = sa.select(selected).where((Comment.initiative_id == initiative_id) & (Comment.deleted_at.is_(None)))
 
         if not is_total:
             query = (
-                query.order_by(Comment.id.desc())
+                query.where((Comment.parent_id.is_(None)) & (Comment.initiative.has(Initiative.deleted_at.is_(None))))
+                .order_by(Comment.id.desc())
                 .join(Comment.initiative)
                 .options(
                     joinedload(Comment.user, innerjoin=True),
