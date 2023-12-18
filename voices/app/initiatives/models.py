@@ -345,7 +345,7 @@ class Comment(BaseDatetimeModel):
 
         if not is_total:
             query = (
-                query.where((Comment.parent_id.is_(None)) & (Comment.initiative.has(Initiative.deleted_at.is_(None))))
+                query.where(Comment.parent_id.is_(None))
                 .order_by(Comment.id.desc())
                 .join(Comment.initiative)
                 .options(

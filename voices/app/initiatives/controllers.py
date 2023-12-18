@@ -381,6 +381,9 @@ async def get_comments(initiative_id: uuid.UUID, last_id: uuid.UUID = None):
     async with Transaction():
         initiative = await Initiative.get(initiative_id)  # raises 404
         comments = await Comment.get_comments(initiative_id=initiative_id, last_id=last_id)
+        for comment in comments:
+            replies = [reply for reply in comment.replies if not reply.deleted_at]
+            comment.replies = replies
 
     return Response(
         payload=CommentListView(
