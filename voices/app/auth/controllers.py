@@ -6,6 +6,7 @@ from voices.app.core.exceptions import (
     ObjectNotFoundError,
     PasswordMatchError,
     UserNotFoundError,
+    ValidationError,
 )
 from voices.app.core.protocol import Response
 from voices.app.friends.models import Friend, RelationshipType
@@ -20,6 +21,9 @@ from voices.chat import create_user, login_user
 from voices.db.connection import Transaction
 from voices.mail.confirm_email import async_confirm_email
 from voices.redis import Redis
+
+from asyncpg.exceptions import UniqueViolationError
+
 
 from .models import User
 from .views import (
@@ -149,8 +153,12 @@ async def post_refresh_token(body: Token):
 async def update_profile(body: ProfileUpdateView, token: TokenData = Depends(JWTBearer())):
     unset = body.dict(exclude_unset=True)
 
-    async with Transaction():
-        user = await User.update_profile(unset, user_id=token.sub)
+    try:
+        async with Transaction():
+            user = await User.update_profile(unset, user_id=token.sub)
+    except UniqueViolationError as exc:
+        exc
+        raise ValidationError
 
     return Response(payload=ProfileView.from_orm(user))
 

@@ -545,7 +545,9 @@ async def vote_initiative(initiative_id: uuid.UUID, body: SurveyVoteView, token:
                         ((survey.blocks[i].answer[j].vote_count) / survey.vote_count) * 100
                     )
                 else:
-                    survey.blocks[i].answer[j].vote_percent = int(((option.vote_count) / survey.vote_count) * 100)
+                    survey.blocks[i].answer[j].vote_percent = int(
+                        ((survey.blocks[i].answer[j].vote_count) / survey.vote_count) * 100
+                    )
             except KeyError:
                 raise ValidationError(message="Not enough values in answer")
 
