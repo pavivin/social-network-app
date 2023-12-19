@@ -243,6 +243,11 @@ async def get_my(
         initiative_view.is_liked = initiative_view.id in set_liked
         initiative_view.is_supported = initiative_view.id in set_supported
         initiative_view.survey = await Survey.get(initiative_view.id)
+        if initiative_view.survey and token:
+            existing_answer = await SurveyAnswer.find(
+                SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_view.id
+            ).first_or_none()
+            initiative_view.is_voted = bool(existing_answer)
         response.append(initiative_view)
 
     return Response(
@@ -258,27 +263,27 @@ async def create_initiative(
     body: CreateInitiativeVew,
     token: TokenData = Depends(JWTBearer()),
 ):
-    # async with Transaction():
-    #     if token:
-    #         user = await User.get_by_id(token.sub)
-    #         city = user.city or settings.DEFAULT_CITY
-    #     else:
-    #         city = settings.DEFAULT_CITY
+    async with Transaction():
+        if token:
+            user = await User.get_by_id(token.sub)
+            city = user.city or settings.DEFAULT_CITY
+        else:
+            city = settings.DEFAULT_CITY
 
-    #     # if not user.email_approved:
-    #     #     raise NeedEmailConfirmation
+        # if not user.email_approved:
+        #     raise NeedEmailConfirmation
 
-    #     initiative_id = await Initiative.create(
-    #         city=city,
-    #         user_id=user.id,
-    #         images=body.images,
-    #         category=body.category,
-    #         location=body.location,
-    #         title=body.title,
-    #         main_text=body.main_text,
-    #         event_direction=body.event_direction,
-    #         ar_model=body.ar_model,
-    #     )
+        initiative_id = await Initiative.create(
+            city=city,
+            user_id=user.id,
+            images=body.images,
+            category=body.category,
+            location=body.location,
+            title=body.title,
+            main_text=body.main_text,
+            event_direction=body.event_direction,
+            ar_model=body.ar_model,
+        )
 
     send_notification.apply_async(
         kwargs=dict(
@@ -286,7 +291,7 @@ async def create_initiative(
             user_id_get=token.sub,
             status=EventName.POST_CREATED,
             initiative_image=body.images[0],
-            initiative_id=str(uuid.uuid4()),
+            initiative_id=initiative_id,
         ),
         retry=False,
     )

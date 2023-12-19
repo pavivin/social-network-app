@@ -94,6 +94,7 @@ class InitiativeView(BaseModel):
     to_date: date | None
     is_liked: bool = False
     is_supported: bool = False
+    is_voted: bool = False
     tags: list | None
     survey: SurveyView | None = None
     ar_model: str | None
@@ -154,7 +155,6 @@ class InitiativeView(BaseModel):
 class InitiativeDetailedView(InitiativeView):
     is_liked: bool = False
     is_supported: bool = False
-    is_voted: bool = False
     ar_model: str | None
 
     @pydantic.validator("id", pre=True)
