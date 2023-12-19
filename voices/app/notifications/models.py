@@ -75,6 +75,16 @@ class Notification(BaseModel):
         result = await db_session.get().execute(query)
         return result.scalars().all()
 
+    @classmethod
+    async def update_already_friends(cls, user_id: uuid.UUID, old_status: str, new_status: str, new_text):
+        query = (
+            sa.update(Notification)
+            .values(status=new_status, text=new_text)
+            .where(Notification.user_id == user_id)
+            .where(Notification.status == old_status)
+        )
+        await db_session.get().execute(query)
+
 
 class FirebaseApp(BaseModel):
     __tablename__ = "firebase_token"

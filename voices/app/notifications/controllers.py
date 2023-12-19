@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from voices.app.auth.views import TokenData
 from voices.app.core.protocol import Response
 from voices.auth.jwt_token import JWTBearer
+from voices.chat import create_gcm_token
 from voices.db.connection import Transaction
 
 from .models import FirebaseApp, Notification
@@ -19,6 +20,7 @@ async def add_token_device(body: FirebaseAdd, token: TokenData = Depends(JWTBear
         token_exist = await FirebaseApp.token_exist(body.firebase_token)
         if not token_exist:
             await FirebaseApp.create(token.sub, body.firebase_token)
+        await create_gcm_token(body.firebase_token)
         return Response(code=201)
 
 

@@ -23,12 +23,14 @@ class EventName(StrEnum):
     POST_CREATED = "post_created"
     POST_APPROVED = "post_approved"
     POST_DECLINED = "post_declined"
+    ALREADY_FRIENDS = "already_friends"
 
 
 status_text = {
     EventName.LIKE: "Оценил вашу запись",
     EventName.REQUEST_FRENDS: "Хочет добавить вас в друзья",
     EventName.ACCEPT_FRENDS: "Принял вашу заявку",
+    EventName.ALREADY_FRIENDS: "Вы приняли заявку в друзья",
     EventName.SHARE: "Поделился вашей записью",
     EventName.COMMENT: "Оставил комментарий под вашей записью",
     EventName.ANSWERED: "Ответил вам",
@@ -79,10 +81,23 @@ async def firebase_notifications(
             initiative_image=initiative_image,
             initiative_id=initiative_id,
         )
+        if status == EventName.ACCEPT_FRENDS:
+            await Notification.update_already_friends(
+                user_id=user_id_send,
+                old_status=status,
+                new_status=EventName.ALREADY_FRIENDS,
+                new_text=status_text[EventName.ALREADY_FRIENDS],
+            )
+        notification_image = get_minify_image(initiative_image) or get_minify_image(user.image_url)
         response = None
         for token in tokens:
             try:
                 message = messaging.Message(
+                    notification=messaging.Notification(
+                        title=text,
+                        body=text,
+                        image=notification_image,
+                    ),
                     data=data_send,
                     token=token,
                 )

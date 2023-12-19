@@ -8,6 +8,9 @@ ALL_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.list"
 CREATE_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.create"
 DELETE_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/users.delete"
 LOGIN_USER_URL = settings.ROCKETCHAT_URL + "/api/v1/login"
+PUSH_CREATE_URL = settings.ROCKETCHAT_URL + "/api/v1/push.token"
+
+APP_NAME = "startup.cifra.voices_mobile"
 
 
 async def create_user(user_id: uuid.UUID, email: str):
@@ -39,6 +42,18 @@ async def login_user(user_id: uuid.UUID):
             json={
                 "user": user_id.hex,
                 "password": user_id.hex,
+            },
+        )
+
+
+async def create_gcm_token(token: str):
+    async with httpx.AsyncClient() as client:
+        return await client.post(
+            PUSH_CREATE_URL,
+            json={
+                "type": "gcm",
+                "value": token,
+                "appName": APP_NAME,
             },
         )
 

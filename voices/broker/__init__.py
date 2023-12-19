@@ -12,7 +12,7 @@ app = Celery(settings.tasks_name, broker=settings.CELERY_BROKER_URL, backend=set
 loop = asyncio.get_event_loop()
 
 cred = credentials.Certificate(settings.FIREBASE_SECRETS)
-app_firebase = firebase_admin.initialize_app(cred, name="Vizme_Backend")
+app_firebase = firebase_admin.initialize_app(cred)
 
 
 @signals.celeryd_init.connect
