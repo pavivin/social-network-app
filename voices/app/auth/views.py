@@ -94,6 +94,8 @@ class UserView(BaseModel):
 
     @pydantic.validator("image_url", pre=True)
     def prepare_public_file(cls, v: str, values):
+        if not v.startswith("https://storage.yandexcloud"):
+            return v
         if "min" in v:
             return v
         filename = v.split("/")[-1]
