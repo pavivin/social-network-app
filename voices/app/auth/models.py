@@ -5,7 +5,6 @@ from functools import lru_cache
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, load_only
-from voices.config import settings
 
 from voices.db.connection import db_session
 from voices.models import BaseDatetimeModel
@@ -131,10 +130,13 @@ class User(BaseDatetimeModel):
             )
         if last_id:
             query = query.where(User.id < last_id)
+
+        if not is_total:
+            query = query.limit(20)
+
         result = await db_session.get().execute(query)
         if is_total:
             return result.scalar_one()
-        query = query.limit(settings.DEFAULT_PAGE_SIZE)
         return result.scalars().all()
 
     @staticmethod
