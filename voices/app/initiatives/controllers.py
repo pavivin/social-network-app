@@ -413,6 +413,10 @@ async def post_comment(
 
     async with Transaction():
         initiative = await Initiative.get(initiative_id)
+        if reply_id:
+            reply_comment = await Comment.get(reply_id)
+            if reply_comment.parent_id:
+                reply_id = reply_comment.parent_id
         await Comment.post_comment(
             main_text=body.main_text, initiative_id=initiative_id, reply_id=reply_id, user_id=token.sub
         )
