@@ -132,7 +132,7 @@ class User(BaseDatetimeModel):
             query = query.where(User.id < last_id)
 
         if not is_total:
-            query = query.limit(20)
+            query = query.limit(20).order_by(User.id.desc())
 
         result = await db_session.get().execute(query)
         if is_total:

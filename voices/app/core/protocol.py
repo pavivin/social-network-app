@@ -50,6 +50,7 @@ class PaginationView(BaseModel):
     count: int = 0
     total: int = 0
     limit: int = settings.DEFAULT_PAGE_SIZE
+    is_next: bool = True
 
 
 class GeometryPoint(BaseModel):
