@@ -123,8 +123,12 @@ class User(BaseDatetimeModel):
             normalized_pattern = pattern.lower()
             query = query.where(
                 sa.or_(  # TODO: optimize by search vector
-                    sa.func.concat(User.first_name, " ", User.last_name).contains(normalized_pattern),
-                    sa.func.concat(User.last_name, " ", User.first_name).contains(normalized_pattern),
+                    sa.func.concat(sa.func.lower(User.first_name), " ", sa.func.lower(User.last_name)).contains(
+                        normalized_pattern
+                    ),
+                    sa.func.concat(sa.func.lower(User.last_name), " ", sa.func.lower(User.first_name)).contains(
+                        normalized_pattern
+                    ),
                 )
                 & (User.city == city)  # TODO: city to indexed number
             )
