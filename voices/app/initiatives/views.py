@@ -77,7 +77,7 @@ class UserView(BaseModel):
 
 
 class InitiativeView(BaseModel):
-    id: str
+    id: uuid.UUID
     user: UserView
     city: str
     images: list | dict | None

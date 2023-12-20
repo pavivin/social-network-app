@@ -60,7 +60,7 @@ class Survey(BaseDocument):
         for initiative in feed:
             initiative.is_liked = initiative.id in set_liked if set_liked else False
             initiative.is_supported = initiative.id in set_liked if set_supported else False
-            initiative.survey = await Survey.get(initiative.id)
+            initiative.survey = await Survey.get(str(initiative.id))
             if token:
                 answer = await SurveyAnswer.find(
                     SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative.id

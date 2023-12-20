@@ -100,10 +100,13 @@ async def get_feed(
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = initiative_view.id in set_liked
         initiative_view.is_supported = initiative_view.id in set_supported
-        survey = await Survey.get(initiative_view.id)
+        survey = await Survey.get(str(initiative_view.id))  # TODO: get back to UUID
         if survey:
             initiative_view.survey = survey
-            # json.loads(json.dumps(survey, default=lambda o: getattr(o, "__dict__", str(o))))
+            existing_answer = await SurveyAnswer.find(
+                SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_view.id
+            ).first_or_none()
+            initiative_view.is_voted = bool(existing_answer)
         response.append(initiative_view)
 
     # dict_initiatives = []
@@ -206,7 +209,7 @@ async def get_favorites(
     for initiative in feed:  # TODO: rewrite
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = True
-        initiative_view.survey = await Survey.get(initiative_view.id)
+        initiative_view.survey = await Survey.get(str(initiative_view.id))
         response.append(initiative_view)
 
     return Response(
@@ -242,7 +245,7 @@ async def get_my(
         initiative_view = InitiativeView.from_orm(initiative)
         initiative_view.is_liked = initiative_view.id in set_liked
         initiative_view.is_supported = initiative_view.id in set_supported
-        initiative_view.survey = await Survey.get(initiative_view.id)
+        initiative_view.survey = await Survey.get(str(initiative_view.id))
         if initiative_view.survey and token:
             existing_answer = await SurveyAnswer.find(
                 SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_view.id
