@@ -11,13 +11,9 @@ SOCKET_URL = "ws://89.223.126.166:3000/websocket"
 def login_api():
     return requests.post(
         "https://my-city.pro/api/login",
-        # json={
-        #     "email": "user@example.com",
-        #     "password": "string",
-        # },
         json={
-            "email": "tagidick34.tagidick@gmail.com",
-            "password": "Qwerty123",
+            "email": "user@example.com",
+            "password": "string",
         },
     ).json()
 
@@ -131,6 +127,17 @@ def get_rooms():
     )
 
 
+def get_message(token: str):
+    return _request(
+        {
+            "msg": "method",
+            "method": "getSingleMessage",
+            "id": uuid.uuid4().hex,
+            "params": [token],
+        },
+    )
+
+
 with connect(SOCKET_URL) as websocket:
     login_data = login_api()
     auth_token = login_data["payload"]["rocketchatAuthToken"]
@@ -150,7 +157,10 @@ with connect(SOCKET_URL) as websocket:
 
     while True:
         # result = stream_notify_user(user_id=user_id)
-        stream_notify_room(room_id=room_id)
+        response = stream_notify_room(room_id=room_id)
+        response
+        print("json", response)
+        get_message(token=auth_token)
         time.sleep(1)
     # ROOMS
     get_rooms()

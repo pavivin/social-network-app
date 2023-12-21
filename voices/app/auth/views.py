@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, datetime
-from phonenumbers import PhoneNumber
 
 from pydantic import AnyUrl, EmailStr
 import pydantic
@@ -54,7 +53,7 @@ class ProfileUpdateView(BaseModel):
     image_url: AnyUrl | None = None
     city: str | None = None
     district: str | None = None
-    phone: PhoneNumber | None = None
+    phone: str | None = None
     birthdate: date | None = None
 
 
@@ -68,7 +67,7 @@ class ProfileView(BaseModel):
     birthdate: date | None = None
     relationship_type: str | None = None
     email: str
-    phone: PhoneNumber | None = None
+    phone: str | None = None
     friends_count: int
 
 
@@ -83,7 +82,7 @@ class OwnProfileView(BaseModel):
     relationship_type: str | None = None
     email: str
     email_approved: bool = False
-    phone: PhoneNumber | None = None
+    phone: str | None = None
     friends_count: int
 
 
