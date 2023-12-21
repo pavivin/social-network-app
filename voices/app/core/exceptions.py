@@ -69,6 +69,7 @@ class EmailTakenError(ApiException):
 
 
 class ValidationError(ApiException):
+    message = "Validation Error"
     status_code = 400
 
 

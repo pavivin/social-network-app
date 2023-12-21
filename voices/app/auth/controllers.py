@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 
@@ -22,7 +23,7 @@ from voices.db.connection import Transaction
 from voices.mail.confirm_email import async_confirm_email
 from voices.redis import Redis
 
-from asyncpg.exceptions import UniqueViolationError
+from sqlalchemy.exc import IntegrityError
 
 
 from .models import User
@@ -149,6 +150,16 @@ async def post_refresh_token(body: Token):
     )
 
 
+def get_conflicting_field(err: IntegrityError) -> tuple[str, str] | None:
+    """
+    Parses the IntegrityError message and returns tuple with conflicting field name and value.
+    """
+    pattern = re.compile(r"DETAIL\:\s+Key \((?P<field>.+?)\)=\((?P<value>.+?)\) already exists")
+    match = pattern.search(str(err))
+    if match is not None:
+        return match["field"], match["value"]
+
+
 @router.patch("/profile", response_model=Response[ProfileView])  # TODO: to profile module
 async def update_profile(body: ProfileUpdateView, token: TokenData = Depends(JWTBearer())):
     unset = body.dict(exclude_unset=True)
@@ -156,9 +167,9 @@ async def update_profile(body: ProfileUpdateView, token: TokenData = Depends(JWT
     try:
         async with Transaction():
             user = await User.update_profile(unset, user_id=token.sub)
-    except UniqueViolationError as exc:
-        exc
-        raise ValidationError
+    except IntegrityError as exc:
+        field, _ = get_conflicting_field(exc)
+        raise ValidationError(payload={"fields": [field]})
 
     return Response(payload=ProfileView.from_orm(user))
 
