@@ -103,10 +103,11 @@ async def get_feed(
         survey = await Survey.get(str(initiative_view.id))  # TODO: get back to UUID
         if survey:
             initiative_view.survey = survey
-            existing_answer = await SurveyAnswer.find(
-                SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_view.id
-            ).first_or_none()
-            initiative_view.is_voted = bool(existing_answer)
+            if token:
+                existing_answer = await SurveyAnswer.find(
+                    SurveyAnswer.user_id == uuid.UUID(token.sub), SurveyAnswer.survey_id == initiative_view.id
+                ).first_or_none()
+                initiative_view.is_voted = bool(existing_answer)
         response.append(initiative_view)
 
     # dict_initiatives = []

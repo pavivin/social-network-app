@@ -29,7 +29,7 @@ async def handle():
         db_users = await User.get_all()
 
         for user in db_users:
-            last_name, first_name, image_url = get_random_name()
+            first_name, last_name, image_url = get_random_name()
 
             user.first_name = first_name
             user.last_name = last_name
