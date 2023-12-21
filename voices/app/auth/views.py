@@ -1,10 +1,11 @@
 import uuid
 from datetime import date, datetime
 
+
 from pydantic import AnyUrl, EmailStr
 import pydantic
 
-from voices.app.core.protocol import BaseModel
+from voices.app.core.protocol import BaseModel, PhoneNumber
 
 from .models import User
 
@@ -53,7 +54,7 @@ class ProfileUpdateView(BaseModel):
     image_url: AnyUrl | None = None
     city: str | None = None
     district: str | None = None
-    phone: str | None = None
+    phone: PhoneNumber | None = None
     birthdate: date | None = None
 
 
