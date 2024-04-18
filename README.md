@@ -1,19 +1,50 @@
-# Запуск
+# Social App
 
-## Установка зависимостей
+There is social app that I worked with.
+
+Stack:
+
+FastAPI, PostgreSQL, MongoDB, Redis, Celery, Pytest
+
+
+Note: It's a big project, I wrote this project alone. I did not have much time to write the cleanest code.
+
+
+What it consist of:
+
+- Tests (I have some)
+    - Factory for tests
+- Pre-commit linting
+- Simple obscene word filter
+- Docker, deploy overall (now it's commented)
+- Working notifications
+- Suitable admin-panel in django
+- Bunch of useful scripts
+- Integration with Rocketchat
+
+What can be improved:
+
+- write more tests
+- CI: linting, test-coverage, security
+- using out-of-box fastapi-filters
+- using out-of-box fastapi-pagination
+- using graph databases for friends
+- move secret out of repo
+
+## Dependencies install
 
 ```bash
 pip install poetry
 poetry install
 ```
 
-## Добавление зависимости
+## Add dependency
 
 ```bash
 poetry add
 ```
 
-## Установка pre-commit
+## pre-commit install
 
 ```bash
 pip install pre-commit
@@ -26,22 +57,14 @@ pre-commit install
 pre-commit run -a
 ```
 
-## Запуск celery
+## Run celery worker
 
 ```bash
 celery -A voices.broker worker -l info
 ```
 
-## Запуск celery-beat
+## Run celery-beat
 
 ```bash
 celery -A voices.broker beat -l info
 ```
-
-## Тесты
-
-Для тестов используется pytest и pytest-factoryboy
-
-Factoryboy представляет собой автоматическое создание моделей
-
-Вызывать готовые модели и factory можно как фикстуры в тестах.
