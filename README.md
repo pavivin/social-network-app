@@ -9,6 +9,7 @@ FastAPI, PostgreSQL, MongoDB, Redis, Celery, Pytest
 
 Note: It's a big project, I wrote this alone. I did not have much time to write the cleanest code.
 
+I'm going to improve some parts to create some useful template.
 
 What it consist of:
 
@@ -23,6 +24,7 @@ What it consist of:
 - Integration with Rocketchat
 - Async code
 - S3 integration
+- Sentry SDK
 
 What can be improved:
 
