@@ -7,7 +7,7 @@ Stack:
 FastAPI, PostgreSQL, MongoDB, Redis, Celery, Pytest
 
 
-Note: It's a big project, I wrote this project alone. I did not have much time to write the cleanest code.
+Note: It's a big project, I wrote this alone. I did not have much time to write the cleanest code.
 
 
 What it consist of:
@@ -21,6 +21,8 @@ What it consist of:
 - Suitable admin-panel in django
 - Bunch of useful scripts
 - Integration with Rocketchat
+- Async code
+- S3 integration
 
 What can be improved:
 
