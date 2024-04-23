@@ -16,7 +16,7 @@ What it consist of:
 - Tests (I have some)
     - Factory for tests
 - Pre-commit linting
-- Simple obscene word filter
+- Simple profanity filter (enough for test)
 - Docker, deploy overall (now it's commented)
 - Working notifications
 - Suitable admin-panel in django
@@ -34,6 +34,7 @@ What can be improved:
 - using out-of-box fastapi-pagination
 - using graph databases for friends
 - move secret out of repo
+- advanced profanity filter
 
 ## Dependencies install
 
@@ -55,7 +56,7 @@ pip install pre-commit
 pre-commit install
 ```
 
-## Запуск pre-commit вручную
+## Run pre-commit
 
 ```bash
 pre-commit run -a
