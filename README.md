@@ -25,6 +25,7 @@ What it consist of:
 - Async code
 - S3 integration
 - Sentry SDK
+- Using uuidv7 to better indexing
 
 What can be improved:
 
