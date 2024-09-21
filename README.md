@@ -7,7 +7,8 @@ Stack:
 FastAPI, PostgreSQL, MongoDB, Redis, Celery, Pytest
 
 
-Note: It's a big project, I wrote this alone. I did not have much time to write the cleanest code.
+Note: It's a big project, I wrote this alone in my free time. I did not have much time to write the cleanest code.
+With more time I can do much better
 
 I'm going to improve some parts to create some useful template.
 

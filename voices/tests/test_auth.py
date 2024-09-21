@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from factories import UserFactory
+from factories.user import UserFactory
 from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
